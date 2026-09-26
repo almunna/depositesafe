@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "DepositSafe"
+description = "A browser-first deposit verification platform foundation with public product routing, guest transactions, customer and admin shells, and shared transaction infrastructure."
+version = "1.0.0"
+id = "artifacts/depositsafe"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25078
+
+[services.development]
+run = "pnpm --filter @workspace/depositsafe run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/depositsafe", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/depositsafe/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25078"
+BASE_PATH = "/"

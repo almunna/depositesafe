@@ -10,6 +10,16 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: products
+    description: Controlled Verify V1 product configuration
+  - name: account
+    description: Customer account and dashboard operations
+  - name: transactions
+    description: Guest and authenticated transaction operations
+  - name: admin
+    description: Protected administration operations
+  - name: webhooks
+    description: Provider and authentication webhook structure
 paths:
   /healthz:
     get:
@@ -24,7 +34,211 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      summary: List configured Verify products
+      responses:
+        "200":
+          description: Configured products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+  /products/{slug}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      summary: Get one configured Verify product
+      parameters:
+        - $ref: "#/components/parameters/ProductSlug"
+      responses:
+        "200":
+          description: Product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /me:
+    get:
+      operationId: getCurrentUser
+      tags: [account]
+      summary: Get the current authenticated user
+      security:
+        - clerkSession: []
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [account]
+      summary: Get the current customer dashboard summary
+      security:
+        - clerkSession: []
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /transactions:
+    get:
+      operationId: listTransactions
+      tags: [transactions]
+      summary: List transactions for the current customer
+      security:
+        - clerkSession: []
+      responses:
+        "200":
+          description: Customer transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      operationId: createTransaction
+      tags: [transactions]
+      summary: Create a guest or authenticated transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionInput"
+      responses:
+        "201":
+          description: Created transaction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+        "400":
+          description: Invalid transaction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /transactions/{reference}:
+    get:
+      operationId: getTransaction
+      tags: [transactions]
+      summary: Get a transaction by DepositSafe reference
+      parameters:
+        - $ref: "#/components/parameters/TransactionReference"
+      responses:
+        "200":
+          description: Transaction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+        "404":
+          description: Transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/transactions:
+    get:
+      operationId: listAdminTransactions
+      tags: [admin]
+      summary: List all transactions for authorised administrators
+      security:
+        - clerkSession: []
+      responses:
+        "200":
+          description: All transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Administrator access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /webhooks/clerk:
+    post:
+      operationId: receiveClerkWebhook
+      tags: [webhooks]
+      summary: Reserved Clerk webhook endpoint
+      description: Build 01 reserves this endpoint for future user synchronization. It does not call external providers.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebhookInput"
+      responses:
+        "202":
+          description: Accepted for future processing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebhookAccepted"
 components:
+  securitySchemes:
+    clerkSession:
+      type: http
+      scheme: bearer
+      description: Clerk session cookie is used by the browser; bearer notation documents the protected contract.
+  parameters:
+    ProductSlug:
+      name: slug
+      in: path
+      required: true
+      schema:
+        type: string
+    TransactionReference:
+      name: reference
+      in: path
+      required: true
+      schema:
+        type: string
   schemas:
     HealthStatus:
       type: object
@@ -33,4 +247,138 @@ components:
           type: string
       required:
         - status
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+    Product:
+      type: object
+      properties:
+        slug:
+          type: string
+        name:
+          type: string
+        pricePence:
+          type: integer
+        price:
+          type: string
+        provider:
+          type: string
+        participantMode:
+          type: string
+          enum: [single, multiple]
+        active:
+          type: boolean
+      required: [slug, name, pricePence, price, provider, participantMode, active]
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        displayName:
+          type: string
+        role:
+          type: string
+          enum: [customer, admin]
+      required: [id, email, displayName, role]
+    ParticipantInput:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+      required: [name, email]
+    Participant:
+      allOf:
+        - $ref: "#/components/schemas/ParticipantInput"
+        - type: object
+          properties:
+            id:
+              type: string
+          required: [id]
+    TransactionInput:
+      type: object
+      properties:
+        productSlug:
+          type: string
+        email:
+          type: string
+        participant:
+          $ref: "#/components/schemas/ParticipantInput"
+        participants:
+          type: array
+          items:
+            $ref: "#/components/schemas/ParticipantInput"
+      required: [productSlug, email]
+    Transaction:
+      type: object
+      properties:
+        reference:
+          type: string
+        product:
+          $ref: "#/components/schemas/Product"
+        email:
+          type: string
+        status:
+          $ref: "#/components/schemas/TransactionStatus"
+        participants:
+          type: array
+          items:
+            $ref: "#/components/schemas/Participant"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        isGuest:
+          type: boolean
+      required: [reference, product, email, status, participants, createdAt, updatedAt, isGuest]
+    TransactionStatus:
+      type: string
+      enum:
+        - STARTED
+        - PAYMENT_PENDING
+        - PAID
+        - VERIFICATION_PENDING
+        - VERIFICATION_IN_PROGRESS
+        - VERIFICATION_COMPLETED
+        - RESULT_GENERATED
+        - DELIVERED
+        - PAYMENT_FAILED
+        - AWAITING_PARTICIPANT
+        - EXPIRED
+        - VERIFICATION_FAILED
+        - MANUAL_ATTENTION
+    DashboardSummary:
+      type: object
+      properties:
+        totalTransactions:
+          type: integer
+        activeTransactions:
+          type: integer
+        completedTransactions:
+          type: integer
+        recentTransactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Transaction"
+      required: [totalTransactions, activeTransactions, completedTransactions, recentTransactions]
+    WebhookInput:
+      type: object
+      additionalProperties: true
+    WebhookAccepted:
+      type: object
+      properties:
+        accepted:
+          type: boolean
+      required: [accepted]
 

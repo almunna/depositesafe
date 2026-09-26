@@ -1,0 +1,1 @@
+- [DepositSafe authentication](depositsafe-auth.md) — Clerk development UI can show social controls by default; Build 01 intentionally hides them for email/password-only access.

@@ -1,6 +1,6 @@
-# [Project name]
+# DepositSafe
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+DepositSafe is a browser-first foundation for starting and tracking Verify V1 deposit and identity checks with clear transaction references.
 
 ## Run & Operate
 
@@ -22,23 +22,33 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `lib/api-spec/openapi.yaml` — source of truth for the shared API contract.
+- `lib/db/src/schema/` — PostgreSQL/Drizzle entities for the shared DepositSafe core.
+- `artifacts/api-server/src/routes/` — API routes for products, accounts, transactions, admin, and reserved webhooks.
+- `artifacts/api-server/src/lib/integrations/` — server-side placeholders for Stripe, Companies House, Credas, and Mailgun.
+- `artifacts/depositsafe/src/` — responsive public, customer, auth, and admin application shell.
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Clerk owns browser authentication and password storage; the app keeps a permanent internal user ID and supports multiple verified emails.
+- Product prices live in the `product_configurations` table and are returned through one controlled product API.
+- Guest transactions are first-class records with a unique DepositSafe reference and optional future account association.
+- Provider-specific records and statuses are separate from the DepositSafe transaction status model.
+- The browser supports only the Build 01 shells; provider verification, payments, reports, and document capture remain structural placeholders.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+Build 01 provides the Verify V1 product directory, guest transaction creation, reference-based transaction tracking, customer dashboard shell, protected admin oversight shell, and shared core data model.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+No additional preferences recorded.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Keep the OpenAPI spec and generated client/Zod packages in sync after API changes.
+- The development admin path is intentionally permissive for foundation testing; production requires an admin role or configured administrator email.
+- Clerk development and production environments have separate user stores and credentials.
 
 ## Pointers
 

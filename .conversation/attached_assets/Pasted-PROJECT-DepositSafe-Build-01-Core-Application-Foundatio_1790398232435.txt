@@ -1,0 +1,140 @@
+PROJECT: DepositSafe — Build 01: Core Application Foundation
+
+Create the initial technical foundation for DepositSafe, a browser-first responsive SaaS platform operating at http://mydepositsafe.com.
+
+This is Build 01 only. Do not implement external integrations, verification journeys, payments, reports, Protect Access, Protect or Protect Plus beyond the structural placeholders expressly requested below.
+
+Architecture
+
+Build a modular Next.js/React application with PostgreSQL as the database.
+
+The application must be structured so that the following future product modules can share common infrastructure:
+
+Verify V1 — current development phase
+Protect Access — future phase
+Protect / Protect Plus — future phase
+
+Create a shared DepositSafe core for authentication, users, transactions, participants, payments, verification records, results, documents, notifications and audit events.
+
+External providers must be isolated behind server-side integration/service layers. Create structural placeholders only for:
+
+Stripe
+Companies House
+Credas
+Mailgun
+
+No credentials or external API calls are to be implemented in Build 01.
+
+Verify V1 product configuration
+
+Create configurable records for:
+
+Company Check — £4.99 — Companies House
+Bank Account Check — £7.99 — Credas
+Verify — £9.99 — Credas
+Property Ownership Check — £12.99 — Credas
+Verify Both — £14.99 — Credas
+Verify Plus — £14.99 — Credas
+Right to Rent — £14.99 — Credas
+
+Prices should not be duplicated throughout the application. Maintain them through controlled product configuration.
+
+Core data model
+
+Create appropriate database entities and relationships for:
+
+User
+UserEmail
+Transaction
+Participant
+Payment
+Verification
+ProviderEvent
+Result
+Document
+Notification
+AuditEvent
+Product configuration
+
+A User must have a permanent internal identifier independent of their email address. The architecture must support multiple verified email addresses belonging to one user in future.
+
+Transactions must have unique DepositSafe references.
+
+The Participant model must support both single-participant and multi-participant products, including Verify Both.
+
+Authentication
+
+Establish the foundation for:
+
+email/password accounts
+email verification
+password reset
+guest-first transactions
+future association of eligible guest transactions with a verified account
+
+Do not add social login.
+
+Application structure
+
+Create:
+
+responsive public application shell
+header/footer/navigation foundation
+Verify product routing structure
+customer authentication structure
+customer dashboard shell
+protected admin shell
+backend/API structure
+webhook endpoint structure
+central error-handling/logging foundation
+audit-event framework
+
+The seven Verify products should be recognised by the application and routable, but do not build their complete customer journeys in Build 01.
+
+Transaction states
+
+Establish a central DepositSafe transaction-state model capable of representing:
+
+Started, Payment Pending, Paid, Verification Pending, Verification In Progress, Verification Completed, Result Generated and Delivered.
+
+It must also accommodate exception states such as Payment Failed, Awaiting Participant, Expired, Verification Failed and Manual Attention.
+
+Provider-specific statuses must remain separate from DepositSafe’s internal/customer-facing transaction status.
+
+Security and environments
+
+Structure the application for separate development, staging/test and production environments.
+
+All future API credentials must be server-side secrets/environment variables and must never be exposed client-side or hardcoded.
+
+Design
+
+Do not invent a new DepositSafe visual identity.
+
+The approved DepositSafe UI screens are the design authority and will be supplied/implemented separately. For Build 01, use clean structural placeholders where an approved screen has not yet been supplied.
+
+Important future architectural requirement
+
+DepositSafe is browser-first but must not be architected as browser-only. Future Credas verification journeys may require mobile/app-assisted document capture and NFC passport-chip reading. The transaction architecture must therefore allow an external/mobile verification journey to leave the browser flow and subsequently return/update the same DepositSafe transaction.
+
+Do not attempt to implement this functionality in Build 01.
+
+Build 01 acceptance criteria
+
+Stop after the following are working:
+
+The DepositSafe application runs successfully.
+PostgreSQL is connected and migrations/schema work.
+The seven Verify V1 products exist in controlled product configuration.
+A test account can be created.
+A guest test transaction can be created without an account.
+Transactions receive unique DepositSafe references and persist correctly.
+A logged-in test customer can access the customer dashboard shell.
+An authorised admin can access the admin shell and view test transactions.
+Clearly separated server-side integration placeholders exist for Stripe, Companies House, Credas and Mailgun.
+Development/staging/production configuration is structurally separated.
+No external provider integration has been implemented.
+
+STOP after Build 01. Do not proceed to Company Check or any other verification functionality without approval.
+
+Before making major implementation decisions that materially depart from this specification, flag them rather than silently changing the architecture.
