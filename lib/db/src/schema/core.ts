@@ -62,10 +62,12 @@ export const transactionsTable = pgTable(
   {
     id: uuid("id").defaultRandom().primaryKey(),
     reference: text("reference").notNull().unique(),
+    guestCapabilityHash: text("guest_capability_hash"),
     userId: uuid("user_id").references(() => usersTable.id, { onDelete: "set null" }),
     productId: uuid("product_id").notNull().references(() => productConfigurationsTable.id),
     guestEmail: text("guest_email").notNull(),
     status: transactionStatus("status").notNull().default("STARTED"),
+    statusChangedAt: timestamp("status_changed_at", { withTimezone: true }).notNull().defaultNow(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
   },
@@ -86,31 +88,53 @@ export const paymentsTable = pgTable("payments", {
   transactionId: uuid("transaction_id").notNull().references(() => transactionsTable.id, { onDelete: "cascade" }),
   provider: text("provider").notNull().default("stripe"),
   providerReference: text("provider_reference"),
+  checkoutSessionReference: text("checkout_session_reference"),
+  paymentIntentReference: text("payment_intent_reference"),
+  idempotencyKey: text("idempotency_key"),
+  lastProviderEventAt: timestamp("last_provider_event_at", { withTimezone: true }),
   amountPence: integer("amount_pence").notNull(),
   status: text("status").notNull().default("pending"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
-});
+}, (table) => [
+  uniqueIndex("payments_provider_checkout_session_idx").on(table.provider, table.checkoutSessionReference),
+  uniqueIndex("payments_provider_payment_intent_idx").on(table.provider, table.paymentIntentReference),
+  uniqueIndex("payments_transaction_idempotency_idx").on(table.transactionId, table.idempotencyKey),
+]);
 
 export const verificationsTable = pgTable("verifications", {
   id: uuid("id").defaultRandom().primaryKey(),
   transactionId: uuid("transaction_id").notNull().references(() => transactionsTable.id, { onDelete: "cascade" }),
+  participantId: uuid("participant_id").references(() => participantsTable.id, { onDelete: "set null" }),
   provider: text("provider").notNull(),
   providerReference: text("provider_reference"),
   providerStatus: text("provider_status"),
+  companyNumber: text("company_number"),
+  companyName: text("company_name"),
   status: text("status").notNull().default("pending"),
+  lastProviderEventAt: timestamp("last_provider_event_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
-});
+}, (table) => [
+  uniqueIndex("verifications_provider_reference_idx").on(table.provider, table.providerReference),
+]);
 
 export const providerEventsTable = pgTable("provider_events", {
   id: uuid("id").defaultRandom().primaryKey(),
   provider: text("provider").notNull(),
+  externalEventId: text("external_event_id"),
   eventType: text("event_type").notNull(),
   externalReference: text("external_reference"),
+  transactionId: uuid("transaction_id").references(() => transactionsTable.id, { onDelete: "set null" }),
+  occurredAt: timestamp("occurred_at", { withTimezone: true }),
   payload: jsonb("payload").$type<Record<string, unknown>>().notNull().default({}),
+  processingStatus: text("processing_status").notNull().default("received"),
+  processingError: text("processing_error"),
+  processedAt: timestamp("processed_at", { withTimezone: true }),
   receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (table) => [
+  uniqueIndex("provider_events_provider_external_event_idx").on(table.provider, table.externalEventId),
+]);
 
 export const resultsTable = pgTable("results", {
   id: uuid("id").defaultRandom().primaryKey(),
