@@ -31,7 +31,7 @@ const seedProducts = [
   { slug: "property-ownership-check", name: "Property Ownership Check", pricePence: 1299, provider: "Credas", participantMode: "single" },
   { slug: "verify-both", name: "Verify Both", pricePence: 1499, provider: "Credas", participantMode: "multiple" },
   { slug: "verify-plus", name: "Verify Plus", pricePence: 1499, provider: "Credas", participantMode: "single" },
-  { slug: "right-to-rent", name: "Right to Rent", pricePence: 1499, provider: "Credas", participantMode: "single" },
+  { slug: "right-to-rent", name: "Right to Rent", pricePence: 1999, provider: "Credas", participantMode: "single" },
 ] as const;
 
 export async function ensureSeedProducts(): Promise<void> {

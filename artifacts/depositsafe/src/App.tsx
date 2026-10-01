@@ -1,12 +1,13 @@
 import { type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ClerkProvider, useAuth } from '@clerk/react';
+import { ClerkProvider } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { shadcn } from '@clerk/themes';
-import { Redirect, Route, Router as WouterRouter, Switch, useLocation } from 'wouter';
+import { Route, Router as WouterRouter, Switch, useLocation } from 'wouter';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { HelpPage, PrivacyPage, RefundsPage, TermsPage } from '@/pages/public-info-pages';
 import NotFound from '@/pages/not-found';
 import {
   AdminPage,
@@ -53,17 +54,15 @@ const clerkAppearance = {
   },
 };
 
-function HomeRoute() {
-  const { isLoaded, isSignedIn } = useAuth();
-  if (isLoaded && isSignedIn) return <Redirect to="/dashboard" />;
-  return <HomePage />;
-}
-
 function Router() {
   return (
     <RoutedErrorBoundary>
       <Switch>
-        <Route path="/" component={HomeRoute} />
+        <Route path="/" component={HomePage} />
+        <Route path="/help" component={HelpPage} />
+        <Route path="/terms" component={TermsPage} />
+        <Route path="/privacy" component={PrivacyPage} />
+        <Route path="/refunds" component={RefundsPage} />
         <Route path="/products/:slug" component={ProductDetailPage} />
         <Route path="/sign-in/*?" component={() => <AuthPage mode="sign-in" />} />
         <Route path="/sign-up/*?" component={() => <AuthPage mode="sign-up" />} />

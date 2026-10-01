@@ -7,16 +7,13 @@ import {
   getGetProductQueryKey,
   getGetTransactionQueryKey,
   getListAdminTransactionsQueryKey,
-  getListProductsQueryKey,
   getListTransactionsQueryKey,
   getReceiveClerkWebhookMutationKey,
-  type Product,
   type Transaction,
   useGetDashboardSummary,
   useGetProduct,
   useGetTransaction,
   useListAdminTransactions,
-  useListProducts,
   useListTransactions,
   useReceiveClerkWebhook,
 } from '@workspace/api-client-react';
@@ -24,9 +21,7 @@ import {
   AppShell,
   BrandMark,
   EmptyState,
-  ProductGrid,
   QueryError,
-  ServiceCheck,
   SkeletonRows,
   StatusBadge,
   TransactionForm,
@@ -34,82 +29,49 @@ import {
   formatDate,
   formatDateTime,
 } from '@/components/depositsafe';
+import { PublicLayout, usePageMeta } from '@/components/public/public-layout';
 
-export function HomePage() {
-  const products = useListProducts({ query: { queryKey: getListProductsQueryKey(), staleTime: 60000 } });
-  return (
-    <div className="min-h-[100dvh] overflow-hidden">
-      <div className="absolute inset-x-0 top-0 -z-10 h-[700px] bg-[radial-gradient(circle_at_78%_8%,hsl(var(--accent)/.25),transparent_28%),linear-gradient(180deg,hsl(var(--muted)/.7),transparent_75%)]" />
-      <PublicHomeHeader />
-      <main>
-        <section className="mx-auto grid max-w-7xl gap-12 px-5 pb-20 pt-12 lg:grid-cols-[1.04fr_.96fr] lg:items-center lg:px-8 lg:pb-28 lg:pt-20">
-          <div className="animate-rise">
-            <p className="eyebrow flex items-center gap-2 text-primary"><span className="h-px w-7 bg-primary" /> Deposit verification, made clear</p>
-            <h1 className="mt-6 max-w-2xl font-display text-[3.55rem] leading-[.94] tracking-[-.045em] text-balance sm:text-6xl lg:text-[5.6rem]">Paperwork you can <em className="text-primary">stand behind.</em></h1>
-            <p className="mt-7 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">DepositSafe gives important tenancy and identity checks a clear reference, a protected record, and a status you can trust.</p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <a href="#products" className="focus-ring inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3.5 text-sm font-extrabold text-primary-foreground hover:-translate-y-0.5" data-testid="link-browse-products">Browse Verify products <ArrowRight className="h-4 w-4" /></a>
-              <Link href="/dashboard" className="focus-ring inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-5 py-3.5 text-sm font-extrabold hover:bg-muted" data-testid="link-track-transaction">Track a transaction</Link>
-            </div>
-            <div className="mt-10 flex flex-wrap gap-x-6 gap-y-3 text-xs font-semibold text-muted-foreground"><span className="inline-flex items-center gap-2"><LockKeyhole className="h-3.5 w-3.5 text-primary" /> Secure reference tracking</span><span className="inline-flex items-center gap-2"><Check className="h-3.5 w-3.5 text-primary" /> Built for UK tenancy checks</span></div>
-          </div>
-          <GuestEntryCard products={products.data ?? []} isLoading={products.isLoading} />
-        </section>
-
-        <section id="products" className="border-y border-border/75 bg-card/45">
-          <div className="mx-auto max-w-7xl px-5 py-20 lg:px-8">
-            <div className="mb-10 flex flex-col justify-between gap-5 md:flex-row md:items-end">
-              <div><p className="eyebrow text-primary">Verify V1 directory</p><h2 className="mt-3 font-display text-4xl tracking-[-.03em] sm:text-5xl">The right check for the record.</h2><p className="mt-3 max-w-lg text-sm leading-6 text-muted-foreground">Seven focused products, each with a clear scope and one dependable reference to follow.</p></div>
-              <span className="font-mono-safe text-xs text-muted-foreground">{products.data?.length ?? '—'} configured products</span>
-            </div>
-            <ProductGrid />
-          </div>
-        </section>
-
-        <section id="how-it-works" className="mx-auto grid max-w-7xl gap-12 px-5 py-20 lg:grid-cols-[.78fr_1.22fr] lg:px-8 lg:py-28">
-          <div><p className="eyebrow text-primary">A calm process</p><h2 className="mt-4 max-w-md font-display text-4xl leading-tight tracking-[-.03em] sm:text-5xl">Know what is happening, without chasing it.</h2><p className="mt-5 max-w-md text-sm leading-6 text-muted-foreground">DepositSafe separates the check itself from the noise around it. Start once, keep the reference, and return when you need the latest status.</p><div className="mt-7"><ServiceCheck /></div></div>
-          <div className="grid gap-3 sm:grid-cols-3">
-            {[['01', 'Choose a check', 'Select the Verify product that matches your paperwork.'], ['02', 'Name the record', 'Add an email and, where needed, the other participant.'], ['03', 'Follow the reference', 'See progress in one protected transaction view.']].map(([number, title, detail]) => <div key={number} className="rounded-2xl border border-border bg-card p-5"><span className="font-mono-safe text-xs text-primary">{number}</span><h3 className="mt-12 text-base font-extrabold">{title}</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">{detail}</p></div>)}
-          </div>
-        </section>
-      </main>
-      <footer className="border-t border-border/75 px-5 py-8 lg:px-8"><div className="mx-auto flex max-w-7xl flex-col gap-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between"><BrandMark /><span>Important records, given a dependable place to land.</span><span className="font-mono-safe">DEPOSITSAFE / VERIFY V1</span></div></footer>
-    </div>
-  );
-}
-
-function PublicHomeHeader() {
-  return (
-    <header className="relative z-20 mx-auto flex max-w-7xl items-center justify-between px-5 py-5 lg:px-8">
-      <BrandMark />
-      <nav className="hidden items-center gap-6 md:flex"><a href="#products" className="focus-ring text-sm font-semibold text-muted-foreground hover:text-foreground" data-testid="link-home-products">Products</a><a href="#how-it-works" className="focus-ring text-sm font-semibold text-muted-foreground hover:text-foreground" data-testid="link-home-process">How it works</a><Link href="/sign-in" className="focus-ring rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-bold" data-testid="link-home-sign-in">Sign in</Link></nav>
-      <Link href="/sign-in" className="focus-ring rounded-lg border border-border bg-card px-3 py-2 text-xs font-bold md:hidden" data-testid="link-mobile-sign-in">Sign in</Link>
-    </header>
-  );
-}
-
-function GuestEntryCard({ products, isLoading }: { products: Product[]; isLoading: boolean }) {
-  return (
-    <div className="relative animate-rise stagger-2">
-      <div className="absolute -inset-4 rounded-[2rem] border border-primary/10 bg-primary/5" />
-      <div className="relative overflow-hidden rounded-[1.6rem] border border-border bg-card p-6 shadow-[0_24px_70px_rgba(28,55,63,.11)] sm:p-8">
-        <div className="flex items-start justify-between gap-6"><div><p className="eyebrow text-primary">Guest transaction</p><h2 className="mt-3 font-display text-3xl tracking-[-.03em]">Start from here.</h2><p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">No account required. We will give you a reference to return to.</p></div><div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-accent/30 text-foreground"><FileCheck2 className="h-5 w-5" /></div></div>
-        {isLoading ? <div className="mt-7"><SkeletonRows count={2} /></div> : products.length ? <TransactionForm products={products} compact /> : <div className="mt-7 rounded-xl border border-border bg-muted/45 p-4 text-sm text-muted-foreground" data-testid="text-no-products">Product choices will appear here when Verify V1 is configured.</div>}
-      </div>
-    </div>
-  );
-}
+export { HomePage } from './home-page';
 
 export function ProductDetailPage() {
   const { slug = '' } = useParams<{ slug: string }>();
   const product = useGetProduct(slug, { query: { queryKey: getGetProductQueryKey(slug), enabled: Boolean(slug), retry: false } });
+  usePageMeta(`${product.data?.name ?? 'Verification checks'} | DepositSafe`, 'Choose a DepositSafe verification check and start with a guest reference or an account.');
   if (product.isLoading) return <PublicProductFrame><SkeletonRows count={3} /></PublicProductFrame>;
-  if (product.isError || !product.data) return <PublicProductFrame><QueryError message="This Verify product could not be found." /></PublicProductFrame>;
-  return <PublicProductFrame><div className="grid gap-12 lg:grid-cols-[1fr_400px] lg:items-start"><div><Link href="/" className="focus-ring inline-flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-foreground" data-testid="link-back-directory"><ArrowLeft className="h-3.5 w-3.5" /> Back to directory</Link><div className="mt-12 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary"><ShieldCheck className="h-7 w-7" /></div><p className="eyebrow mt-8 text-primary">Verify V1 / {product.data.provider}</p><h1 className="mt-4 max-w-2xl font-display text-5xl tracking-[-.045em] sm:text-6xl">{product.data.name}</h1><p className="mt-6 max-w-xl text-base leading-7 text-muted-foreground">A focused verification check with a protected transaction record and a clear path to the result. The provider journey will be represented here when that integration is available.</p><div className="mt-10 grid max-w-xl gap-3 sm:grid-cols-2"><InfoTile icon={<UsersRound />} title={product.data.participantMode === 'multiple' ? 'Multiple participants' : 'Single participant'} /><InfoTile icon={<LockKeyhole />} title="Protected reference" /></div><div className="mt-10 rounded-2xl border border-dashed border-border bg-muted/30 p-5"><p className="eyebrow text-muted-foreground">Structural placeholder</p><p className="mt-2 text-sm leading-6 text-muted-foreground">Verification provider steps and payment processing are not part of this interface build. Your transaction will be created and tracked as a clear operational record.</p></div></div><div className="sticky top-6 rounded-2xl border border-border bg-card p-6 shadow-[0_18px_48px_rgba(28,55,63,.08)]"><div className="flex items-end justify-between border-b border-border/70 pb-5"><div><p className="eyebrow text-muted-foreground">Start check</p><p className="mt-2 text-sm font-bold">One protected reference</p></div><span className="font-display text-3xl">{product.data.price}</span></div><TransactionForm product={product.data} /></div></div></PublicProductFrame>;
+  if (product.isError || !product.data) return <PublicProductFrame><QueryError message="This DepositSafe check could not be found." /></PublicProductFrame>;
+  return (
+    <PublicProductFrame>
+      <div className="grid gap-12 lg:grid-cols-[1fr_400px] lg:items-start">
+        <div>
+          <Link href="/" className="focus-ring inline-flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-foreground" data-testid="link-back-directory"><ArrowLeft className="h-4 w-4" /> Back to our checks</Link>
+          <div className="mt-10 grid h-14 w-14 place-items-center rounded-2xl bg-primary/10 text-primary"><ShieldCheck className="h-7 w-7" /></div>
+          <p className="mt-6 text-sm font-bold text-primary">DepositSafe verification check</p>
+          <h1 className="ds-display mt-4 text-4xl font-extrabold sm:text-5xl">{product.data.name}</h1>
+          <p className="mt-6 max-w-xl text-base leading-7 text-muted-foreground">Start with the details below and keep your reference to follow progress. Verification checks help inform your decision; they do not guarantee a person, payment or transaction is safe.</p>
+          {product.data.slug === 'right-to-rent' ? <p className="mt-4 font-bold text-primary">For properties in England only.</p> : null}
+          <div className="mt-8 grid max-w-xl gap-3 sm:grid-cols-2">
+            <InfoTile icon={<UsersRound />} title={product.data.participantMode === 'multiple' ? 'Two-person verification' : 'Single check'} />
+            <InfoTile icon={<LockKeyhole />} title="One check reference" />
+          </div>
+          <div className="mt-8 rounded-2xl bg-secondary p-5">
+            <h2 className="text-sm font-bold">Before you start</h2>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">DepositSafe is pre-launch. Starting a record does not mean a payment has been taken or that verification is complete. Check availability with <Link href="/help" className="font-bold text-primary underline">our support team</Link> before relying on a result.</p>
+          </div>
+        </div>
+        <div className="rounded-2xl border border-border bg-white p-6 shadow-lg lg:sticky lg:top-24">
+          <div className="flex items-end justify-between border-b border-border pb-5">
+            <div><p className="text-sm font-bold text-muted-foreground">Start check</p><p className="mt-2 text-sm font-bold">Keep your reference</p></div>
+            <span className="ds-display text-3xl font-bold text-primary">{product.data.price}</span>
+          </div>
+          <TransactionForm product={product.data} />
+        </div>
+      </div>
+    </PublicProductFrame>
+  );
 }
 
 function PublicProductFrame({ children }: { children: ReactNode }) {
-  return <div className="min-h-[100dvh] overflow-hidden"><div className="absolute inset-x-0 top-0 -z-10 h-96 bg-[radial-gradient(circle_at_75%_0%,hsl(var(--accent)/.22),transparent_36%)]" /><PublicHomeHeader /><main className="mx-auto max-w-7xl px-5 pb-20 pt-8 lg:px-8 lg:pt-14">{children}</main></div>;
+  return <PublicLayout><div className="mx-auto max-w-7xl px-5 py-14 lg:px-8 lg:py-20">{children}</div></PublicLayout>;
 }
 
 function InfoTile({ icon, title }: { icon: ReactNode; title: string }) {

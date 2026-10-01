@@ -1,1 +1,2 @@
 - [DepositSafe authentication](depositsafe-auth.md) — Clerk development UI can show social controls by default; Build 01 intentionally hides them for email/password-only access.
+- [Public brand direction](public-brand-direction.md) — use the human-led blue/navy direction; generated starter assets are not approval, and reference screenshots do not determine prices.

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @plugin "@tailwindcss/typography";
@@ -174,3 +174,27 @@
 
 .status-dot { width: .46rem; height: .46rem; border-radius: 999px; display: inline-block; background: currentColor; }
 .focus-ring:focus-visible { outline: 3px solid hsl(var(--accent) / .65); outline-offset: 3px; }
+/* Public marketing scope: tokens are local to .ds-public and do not touch the app shell */
+.ds-public {
+  --background: 210 60% 98%; --foreground: 222 55% 14%; --border: 214 40% 88%; --input: 214 36% 84%;
+  --ring: 217 90% 52%; --card: 0 0% 100%; --card-foreground: 222 55% 14%;
+  --primary: 220 86% 46%; --primary-foreground: 0 0% 100%;
+  --secondary: 210 70% 94%; --secondary-foreground: 222 55% 14%;
+  --muted: 210 55% 95%; --muted-foreground: 219 20% 38%;
+  --accent: 205 90% 92%; --accent-foreground: 222 55% 14%;
+  --destructive: 0 62% 42%; --destructive-foreground: 0 0% 100%;
+  --popover: 0 0% 100%; --popover-foreground: 222 55% 14%;
+  --ds-navy: 222 62% 13%;
+  background: hsl(var(--background)); color: hsl(var(--foreground)); font-family: 'Manrope', sans-serif;
+}
+.ds-public .ds-display { font-family: 'Sora', 'Manrope', sans-serif; letter-spacing: -0.035em; }
+.ds-public .focus-ring:focus-visible, .ds-public a:focus-visible, .ds-public button:focus-visible, .ds-public summary:focus-visible { outline: 3px solid hsl(var(--ring) / .6); outline-offset: 3px; }
+.ds-public .ds-grid { background-image: linear-gradient(hsl(220 80% 50% / .06) 1px, transparent 1px), linear-gradient(90deg, hsl(220 80% 50% / .06) 1px, transparent 1px); background-size: 36px 36px; }
+.ds-public .ds-in { animation: ds-in .7s cubic-bezier(.2,.75,.25,1) both; }
+.ds-public .ds-float { animation: ds-float 6s ease-in-out infinite; }
+.ds-public details > summary { list-style: none; }
+.ds-public details > summary::-webkit-details-marker { display: none; }
+.ds-public details[open] .ds-chev { transform: rotate(180deg); }
+@keyframes ds-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes ds-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@media (prefers-reduced-motion: reduce) { .ds-public .ds-in, .ds-public .ds-float { animation: none !important; } .ds-public * { transition: none !important; scroll-behavior: auto !important; } }
