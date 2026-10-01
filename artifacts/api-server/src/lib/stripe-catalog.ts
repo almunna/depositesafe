@@ -1,10 +1,10 @@
 import { db, productConfigurationsTable } from "@workspace/db";
 import { and, eq } from "drizzle-orm";
-import { loadLockedCatalog, stripeMode, type StripeMode } from "@workspace/stripe";
+import { loadLockedCatalog, stripeMode, type LockedProductSlug, type StripeMode } from "@workspace/stripe";
 
 /** Map existing Stripe objects, never seed or replace the live catalogue. */
-export async function syncStripeCatalog(mode: StripeMode = stripeMode()) {
-  const catalog = await loadLockedCatalog(mode);
+export async function syncStripeCatalog(mode: StripeMode = stripeMode(), slug?: LockedProductSlug) {
+  const catalog = await loadLockedCatalog(mode, slug);
   await db.transaction(async tx => {
     for (const product of catalog) {
       const [updated] = await tx.update(productConfigurationsTable).set(mode === "live"

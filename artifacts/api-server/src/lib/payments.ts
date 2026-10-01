@@ -16,6 +16,7 @@ import {
   transactionsTable,
 } from "@workspace/db";
 import { initializeStripePayments } from "./stripe-setup";
+import { syncStripeCatalog } from "./stripe-catalog";
 
 export class PaymentError extends Error {
   constructor(
@@ -305,6 +306,27 @@ export async function createCheckoutSession(
     throw new PaymentError("Stripe payments are temporarily unavailable while payment setup is verified.", 503);
   }
   const { stripe, accountId } = await getStripeContext(mode);
+
+  const [initialTransaction] = await db
+    .select()
+    .from(transactionsTable)
+    .where(eq(transactionsTable.reference, reference))
+    .limit(1);
+  if (!initialTransaction) throw new PaymentError("Transaction not found.", 404);
+
+  const [productIdentity] = await db
+    .select({ slug: productConfigurationsTable.slug })
+    .from(productConfigurationsTable)
+    .where(eq(productConfigurationsTable.id, initialTransaction.productId))
+    .limit(1);
+  if (!productIdentity) throw new PaymentError("The transaction product is unavailable.", 409);
+  const locked = lockedProductForSlug(productIdentity.slug);
+  if (!locked) throw new PaymentError("This product does not match the locked DepositSafe price catalogue.", 409);
+  try {
+    await syncStripeCatalog(mode, locked.slug);
+  } catch {
+    throw new PaymentError(`The ${mode} Stripe price for this product is unavailable or ambiguous.`, 503);
+  }
 
   return db.transaction(async (tx) => {
     const [transaction] = await tx

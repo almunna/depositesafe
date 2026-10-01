@@ -20,3 +20,15 @@ A temporary development URL is not proof of reliable external webhook delivery.
 **Why:** A genuine sandbox hosted Checkout completed and produced a paid Stripe event, but external delivery to the development endpoint remained pending. Signed replay of that genuine event proved reconciliation and the paid UI, not automatic delivery.
 
 **How to apply:** Distinguish card payment, signed replay, automatic delivery and production readiness in reports. Verify external delivery against the stable published URL before declaring live payment readiness; never use a real charge merely to test configuration.
+
+Keep webhook readiness independent from product catalog validation, and validate checkout against the product being purchased.
+
+**Why:** Duplicates for unrelated products continued blocking Company Check and genuine production webhook requests after the Company Check duplicate was archived. An unrelated catalog error must not prevent already-collected payments being reconciled.
+
+**How to apply:** Preserve strict price validation for the selected product and full-catalog audit callers, but do not run a whole-catalog audit as a prerequisite for webhook handling.
+
+Do not infer Stripe mode from product metadata such as `environment: sandbox`.
+
+**Why:** Live copies of sandbox products retained that metadata while their Stripe `livemode` values were true.
+
+**How to apply:** Verify the account and Stripe mode before any catalog operation; use actual live product/price identity and application mappings to distinguish originals from copied duplicates.

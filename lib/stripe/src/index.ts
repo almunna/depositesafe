@@ -1,6 +1,7 @@
 import Stripe from "stripe";
 import { StripeSync } from "stripe-replit-sync";
 export { matchLockedCatalog, loadLockedCatalog, ensureSandboxCatalog } from "./catalog";
+export type { LockedProductSlug } from "./catalog";
 
 export type StripeMode = "test" | "live";
 

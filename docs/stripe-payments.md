@@ -25,7 +25,9 @@ bootstrapped because that account had no catalogue. Names, amounts and providers
 - Connector credentials are fetched afresh and never exposed to the browser. Native connection settings
   use `secret`, `publishable` and `account_id`; some inventory views show only one of multiple native connections.
 - Checkout requires transaction owner/admin authorization or a valid guest capability. Server-side price
-  retrieval validates exact active GBP product, amount and mode. No caller-controlled amounts or `price_data`.
+  retrieval validates the transaction's exact active GBP product, amount and mode. Checkout maps only that
+  locked product; duplicate prices for other products do not block it, while duplicate matches for its own
+  product remain rejected. No caller-controlled amounts or `price_data`.
 - Trusted application origins and transaction-specific return paths prevent arbitrary redirects.
 - Return URLs never mark a transaction paid. Only signature-verified Stripe Checkout events do that.
 - Transaction locks, deterministic payment metadata IDs and Stripe idempotency keys protect retries.
@@ -46,7 +48,9 @@ schema changes to production; no custom production migration or startup DDL is u
 
 Required webhook subscriptions are verified/reconciled. Untracked stripe-sync endpoints cause initialization
 to stop rather than allowing the SDK to delete another project's endpoints. Failed initialization is retriable
-after five seconds. Historical backfill runs independently so it cannot block a current payment.
+after five seconds. Webhook/SDK readiness does not depend on product-catalog matching. Checkout synchronizes
+only its own locked product, while explicit all-product catalogue sync remains strict. Historical backfill
+runs independently so it cannot block a current payment.
 
 ## Verification and publishing
 

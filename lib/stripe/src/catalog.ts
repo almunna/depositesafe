@@ -1,8 +1,17 @@
 import type Stripe from "stripe";
 import { getStripeContext, LOCKED_PRODUCTS, stripeMode, type StripeMode } from "./index";
 
-export function matchLockedCatalog(prices: Stripe.Price[], mode: StripeMode) {
-  return LOCKED_PRODUCTS.map(expected => {
+export type LockedProductSlug = (typeof LOCKED_PRODUCTS)[number]["slug"];
+
+export function matchLockedCatalog(
+  prices: Stripe.Price[],
+  mode: StripeMode,
+  slug?: LockedProductSlug,
+) {
+  const expectedProducts = slug
+    ? LOCKED_PRODUCTS.filter(product => product.slug === slug)
+    : LOCKED_PRODUCTS;
+  return expectedProducts.map(expected => {
     const matches = prices.filter(price => {
       const product = price.product;
       return price.active && price.livemode === (mode === "live")
@@ -19,13 +28,13 @@ export function matchLockedCatalog(prices: Stripe.Price[], mode: StripeMode) {
   });
 }
 
-export async function loadLockedCatalog(mode: StripeMode) {
+export async function loadLockedCatalog(mode: StripeMode, slug?: LockedProductSlug) {
   const { stripe } = await getStripeContext(mode);
   const prices: Stripe.Price[] = [];
   for await (const price of stripe.prices.list({ active: true, limit: 100, expand: ["data.product"] })) {
     prices.push(price);
   }
-  return matchLockedCatalog(prices, mode);
+  return matchLockedCatalog(prices, mode, slug);
 }
 
 /** Explicit sandbox-only bootstrap; production objects are NEVER created or changed. */

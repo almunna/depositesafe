@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { stripeWebhookUrl, missingStripeWebhookEvents } from "./stripe-setup";
 
@@ -15,4 +16,9 @@ test("existing managed Stripe endpoints must subscribe to all required payment e
   assert.ok(missing.includes("checkout.session.async_payment_succeeded"));
   assert.ok(missing.includes("checkout.session.async_payment_failed"));
   assert.ok(missing.includes("checkout.session.expired"));
+});
+
+test("webhook and SDK initialization is independent of product catalogue matching", async () => {
+  const source = await readFile(new URL("./stripe-setup.ts", import.meta.url), "utf8");
+  assert.doesNotMatch(source, /syncStripeCatalog|loadLockedCatalog/);
 });

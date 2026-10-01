@@ -2,7 +2,6 @@ import { runMigrations } from "stripe-replit-sync";
 import { getStripeSync, getStripeContext, stripeMode } from "@workspace/stripe";
 import { pool } from "@workspace/db";
 import type Stripe from "stripe";
-import { syncStripeCatalog } from "./stripe-catalog";
 import { logger } from "./logger";
 
 let initialization: Promise<void> | undefined;
@@ -88,7 +87,6 @@ export function initializeStripePayments() {
         enabled_events: [...new Set([...webhook.enabled_events, ...requiredEvents])] as Stripe.WebhookEndpointUpdateParams.EnabledEvent[],
       });
     }
-    await syncStripeCatalog(mode);
     // Backfill is required, but historical synchronization must not block
     // current checkout or verified webhook reconciliation on autoscale cold starts.
     void sync.syncBackfill({ object: "all" }).catch(() => {
