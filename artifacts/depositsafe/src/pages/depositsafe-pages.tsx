@@ -1,7 +1,7 @@
-import { useCallback, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link, useLocation, useParams } from 'wouter';
 import { SignIn, SignUp } from '@clerk/react';
-import { ArrowLeft, ArrowRight, Check, Clock3, FileCheck2, LockKeyhole, RefreshCw, ShieldCheck, UserRound, UsersRound } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Clock3, FileCheck2, RefreshCw, ShieldCheck, UserRound } from 'lucide-react';
 import {
   getGetDashboardSummaryQueryKey,
   getGetProductQueryKey,
@@ -32,37 +32,43 @@ import {
 import { PaymentPanel, type PaymentReturnState } from '@/components/payment-panel';
 import { CompanyCheckPanel } from '@/components/company-check-panel';
 import { PublicLayout, usePageMeta } from '@/components/public/public-layout';
+import { getProductCopy } from '@/lib/product-copy';
 
 export { HomePage } from './home-page';
 
 export function ProductDetailPage() {
   const { slug = '' } = useParams<{ slug: string }>();
   const product = useGetProduct(slug, { query: { queryKey: getGetProductQueryKey(slug), enabled: Boolean(slug), retry: false } });
-  usePageMeta(`${product.data?.name ?? 'Verification checks'} | DepositSafe`, 'Choose a DepositSafe verification check and start with a guest reference or an account.');
+  const copy = getProductCopy(slug);
+  usePageMeta(`${product.data?.name ?? 'Verification checks'} | DepositSafe`, copy?.summary ?? 'Explore DepositSafe checks before you commit or send money.');
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [slug]);
   if (product.isLoading) return <PublicProductFrame><SkeletonRows count={3} /></PublicProductFrame>;
-  if (product.isError || !product.data) return <PublicProductFrame><QueryError message="This DepositSafe check could not be found." /></PublicProductFrame>;
+  if (product.isError || !product.data) return <PublicProductFrame><QueryError message="This DepositSafe check could not be found." onRetry={() => void product.refetch()} /><Link href="/" className="focus-ring mt-5 inline-flex items-center gap-2 font-bold text-primary"><ArrowLeft className="h-4 w-4" /> Browse DepositSafe checks</Link></PublicProductFrame>;
   return (
     <PublicProductFrame>
       <div className="grid gap-12 lg:grid-cols-[1fr_400px] lg:items-start">
         <div>
           <Link href="/" className="focus-ring inline-flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-foreground" data-testid="link-back-directory"><ArrowLeft className="h-4 w-4" /> Back to our checks</Link>
           <div className="mt-10 grid h-14 w-14 place-items-center rounded-2xl bg-primary/10 text-primary"><ShieldCheck className="h-7 w-7" /></div>
-          <p className="mt-6 text-sm font-bold text-primary">DepositSafe verification check</p>
+          <p className="mt-6 text-sm font-bold text-primary">{product.data.name} by DepositSafe</p>
           <h1 className="ds-display mt-4 text-4xl font-extrabold sm:text-5xl">{product.data.name}</h1>
-          <p className="mt-6 max-w-xl text-base leading-7 text-muted-foreground">Start with the details below and keep your reference to follow progress. Verification checks help inform your decision; they do not guarantee a person, payment or transaction is safe.</p>
-          {product.data.slug === 'right-to-rent' ? <p className="mt-4 font-bold text-primary">For properties in England only.</p> : null}
-          <div className="mt-8 grid max-w-xl gap-3 sm:grid-cols-2">
-            <InfoTile icon={<UsersRound />} title={product.data.participantMode === 'multiple' ? 'Two-person verification' : 'Single check'} />
-            <InfoTile icon={<LockKeyhole />} title="One check reference" />
-          </div>
+          <p className="mt-6 max-w-xl text-base leading-7 text-muted-foreground">{copy?.summary ?? `Find out about ${product.data.name} before starting.`}</p>
+          {copy?.audience ? <p className="mt-4 font-bold text-primary">{copy.audience}</p> : null}
+          {copy ? <div className="mt-8 grid max-w-xl gap-3 sm:grid-cols-2">
+            {copy.features.map((feature) => <InfoTile key={feature} icon={<Check />} title={feature} />)}
+          </div> : null}
           <div className="mt-8 rounded-2xl bg-secondary p-5">
             <h2 className="text-sm font-bold">Before you start</h2>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">DepositSafe is pre-launch. Starting a record does not mean a payment has been taken or that verification is complete. Check availability with <Link href="/help" className="font-bold text-primary underline">our support team</Link> before relying on a result.</p>
+            {copy ? <p className="mt-2 text-sm leading-6 text-muted-foreground">{copy.beforeStart}</p> : null}
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">DepositSafe is pre-launch and check availability may vary. Starting a record does not mean a payment has been taken or that the check is complete. Ask <Link href="/help" className="font-bold text-primary underline">our support team</Link> about availability before starting.</p>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">Checks help inform your decision; they do not guarantee a person, payment or transaction is safe.</p>
           </div>
         </div>
         <div className="rounded-2xl border border-border bg-white p-6 shadow-lg lg:sticky lg:top-24">
           <div className="flex items-end justify-between border-b border-border pb-5">
-            <div><p className="text-sm font-bold text-muted-foreground">Start check</p><p className="mt-2 text-sm font-bold">Keep your reference</p></div>
+            <div><p className="text-sm font-bold text-muted-foreground">Start {product.data.name}</p><p className="mt-2 text-sm font-bold">Price per check</p></div>
             <span className="ds-display text-3xl font-bold text-primary">{product.data.price}</span>
           </div>
           <TransactionForm product={product.data} />
@@ -83,7 +89,19 @@ function InfoTile({ icon, title }: { icon: ReactNode; title: string }) {
 export function AuthPage({ mode }: { mode: 'sign-in' | 'sign-up' }) {
   const isSignIn = mode === 'sign-in';
   const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
-  return <div className="grid min-h-[100dvh] lg:grid-cols-[.86fr_1.14fr]"><div className="hidden flex-col justify-between bg-sidebar p-10 text-sidebar-foreground lg:flex"><BrandMark inverse /><div><p className="eyebrow text-sidebar-primary">DepositSafe account</p><h1 className="mt-5 max-w-md font-display text-5xl leading-[.98] tracking-[-.04em]">The clear record of what matters.</h1><p className="mt-6 max-w-sm text-sm leading-6 text-sidebar-foreground/60">Sign in to follow your protected checks, or create an account to keep them together.</p></div><p className="font-mono-safe text-[.65rem] tracking-[.16em] text-sidebar-foreground/40">SECURE WORKSPACE / VERIFY V1</p></div><div className="flex items-center justify-center bg-background px-5 py-10"><div className="w-full max-w-[440px]"><div className="mb-8 lg:hidden"><BrandMark /></div><Link href="/" className="focus-ring mb-10 inline-flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-foreground" data-testid="link-auth-home"><ArrowLeft className="h-3.5 w-3.5" /> Back to DepositSafe</Link><div className="rounded-2xl border border-border bg-card p-3 shadow-[0_18px_48px_rgba(28,55,63,.07)] sm:p-5">{isSignIn ? <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} /> : <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />}</div><p className="mt-6 text-center text-[.68rem] leading-5 text-muted-foreground">Email and password access is provided by Clerk. DepositSafe never stores your password.</p></div></div></div>;
+  const appearance = {
+    options: { logoImageUrl: `${window.location.origin}${basePath}/approved-depositsafe-logo.png` },
+    elements: {
+      logoImage: { height: '44px', width: 'auto', maxWidth: '190px' },
+      formButtonPrimary: { color: '#ffffff' },
+    },
+    variables: {
+      colorPrimary: '#0065D5', colorForeground: '#002553', colorMutedForeground: '#4e5e74',
+      colorBackground: '#ffffff', colorInput: '#f3f8fb', colorInputForeground: '#002553',
+      fontFamily: 'Inter, Manrope, sans-serif',
+    },
+  };
+  return <div className="ds-customer grid min-h-[100dvh] lg:grid-cols-[.86fr_1.14fr]"><div className="hidden flex-col justify-between bg-sidebar p-10 text-sidebar-foreground lg:flex"><BrandMark inverse /><div><p className="eyebrow text-sidebar-foreground/80">DepositSafe account</p><h1 className="mt-5 max-w-md font-display text-5xl leading-[1.1] tracking-[-.04em]">Your DepositSafe checks, together.</h1><p className="mt-6 max-w-sm text-sm leading-6 text-sidebar-foreground/80">Sign in to follow your checks, or create an account to keep your check records together.</p></div><p className="text-sm text-sidebar-foreground/80">Verify with confidence.</p></div><div className="flex items-center justify-center bg-background px-5 py-10"><div className="w-full max-w-[440px]"><div className="mb-8 lg:hidden"><BrandMark /></div><Link href="/" className="focus-ring mb-10 inline-flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-foreground" data-testid="link-auth-home"><ArrowLeft className="h-3.5 w-3.5" /> Back to DepositSafe</Link><div className="rounded-2xl border border-border bg-card p-3 shadow-[0_18px_48px_rgba(0,37,83,.07)] sm:p-5">{isSignIn ? <SignIn appearance={appearance} routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} /> : <SignUp appearance={appearance} routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />}</div><p className="mt-6 text-center text-[.68rem] leading-5 text-muted-foreground">DepositSafe never stores your password.</p></div></div></div>;
 }
 
 export function DashboardPage() {
@@ -98,12 +116,12 @@ export function DashboardPage() {
           <div>
             <p className="eyebrow text-primary">Your workspace</p>
             <h1 className="mt-3 font-display text-5xl tracking-[-.04em]">Good to see you.</h1>
-            <p className="mt-3 text-sm text-muted-foreground">A clear view of every deposit verification you have started.</p>
+            <p className="mt-3 text-sm text-muted-foreground">A clear view of the DepositSafe checks you have started.</p>
           </div>
           <Link href="/" className="focus-ring inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-extrabold text-primary-foreground" data-testid="link-start-new-check">Start a new check <ArrowRight className="h-4 w-4" /></Link>
         </div>
         {summary.isError ? (
-          <div className="mt-8"><QueryError message="Your overview is not available yet." onRetry={() => void summary.refetch()} /></div>
+           <div className="mt-8"><QueryError message="We could not load your check overview." onRetry={() => void summary.refetch()} /><p className="mt-4 text-center text-sm text-muted-foreground">If you are not signed in, <Link href="/sign-in" className="font-bold text-primary underline">sign in to view your account checks</Link>. For a guest check, return to its original browser tab.</p></div>
         ) : summaryData ? (
           <>
             <div className="mt-10 grid gap-3 sm:grid-cols-3">
@@ -132,7 +150,7 @@ export function DashboardPage() {
               ) : transactions.data?.length ? (
                 <div className="space-y-3">{transactions.data.slice(0, 8).map((transaction) => <TransactionRow key={transaction.reference} transaction={transaction} />)}</div>
               ) : (
-                <EmptyState title="Your record starts here" detail="When you start a protected check, its reference and current status will appear in this list." action={<Link href="/" className="focus-ring inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-bold text-primary-foreground" data-testid="link-empty-start-check">Start a check <ArrowRight className="h-3.5 w-3.5" /></Link>} />
+                <EmptyState title="Your record starts here" detail="When you start a DepositSafe check using your account, its reference and current status will appear in this list." action={<Link href="/" className="focus-ring inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-bold text-primary-foreground" data-testid="link-empty-start-check">Choose a check <ArrowRight className="h-3.5 w-3.5" /></Link>} />
               )}
             </section>
           </>
@@ -154,7 +172,7 @@ export function TransactionDetailPage() {
   const paymentValue = typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('payment');
   const returnState: PaymentReturnState = paymentValue === 'success' || paymentValue === 'cancel' || paymentValue === 'checkout-error' ? paymentValue : null;
   if (transaction.isLoading) return <AppShell active="transactions"><SkeletonRows count={3} /></AppShell>;
-  if (transaction.isError || !transaction.data) return <AppShell active="transactions"><QueryError message="We could not find that transaction." onRetry={() => void transaction.refetch()} /></AppShell>;
+  if (transaction.isError || !transaction.data) return <AppShell active="transactions"><QueryError message="We could not load this check record." onRetry={() => void transaction.refetch()} /><p className="mt-4 text-sm text-muted-foreground">For an account check, <Link href="/sign-in" className="font-bold text-primary underline">sign in</Link>. For a guest check, use its original browser tab; the reference alone does not restore access. If you need help, <Link href="/help" className="font-bold text-primary underline">contact support</Link> and include your reference.</p></AppShell>;
   const item = transaction.data;
   const isCompanyCheck = item.product.slug === 'company-check';
   const stageStatuses: readonly string[] = isCompanyCheck
@@ -179,7 +197,7 @@ export function TransactionDetailPage() {
       <div className="animate-rise">
         <Link href="/dashboard" className="focus-ring inline-flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-foreground" data-testid="link-back-dashboard"><ArrowLeft className="h-3.5 w-3.5" /> Back to overview</Link>
         <div className="mt-8 flex flex-col justify-between gap-6 border-b border-border/80 pb-8 md:flex-row md:items-end">
-          <div><p className="eyebrow text-primary">Protected transaction</p><h1 className="mt-3 max-w-2xl font-display text-4xl tracking-[-.035em] sm:text-5xl">{item.product.name}</h1><p className="mt-3 font-mono-safe text-xs tracking-wide text-muted-foreground">{item.reference}</p></div>
+           <div><p className="eyebrow text-primary">Your {item.product.name} record</p><h1 className="mt-3 max-w-2xl font-display text-4xl tracking-[-.035em] sm:text-5xl">{item.product.name}</h1><p className="mt-3 font-mono-safe text-xs tracking-wide text-muted-foreground">{item.reference}</p></div>
           <StatusBadge status={item.status} />
         </div>
         <div className="mt-8 grid gap-8 lg:grid-cols-[1.15fr_.85fr]">

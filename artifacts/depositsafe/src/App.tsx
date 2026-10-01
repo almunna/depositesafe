@@ -92,8 +92,8 @@ function App() {
             signInUrl={`${basePath}/sign-in`}
             signUpUrl={`${basePath}/sign-up`}
             localization={{
-              signIn: { start: { title: 'Welcome back', subtitle: 'Sign in to access your protected records' } },
-              signUp: { start: { title: 'Create your account', subtitle: 'Keep every verification in one clear place' } },
+              signIn: { start: { title: 'Welcome back', subtitle: 'Sign in to view your DepositSafe checks' } },
+              signUp: { start: { title: 'Create your account', subtitle: 'Keep your DepositSafe check records together' } },
             }}
           >
             <Router />

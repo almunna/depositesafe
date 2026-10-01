@@ -7,7 +7,7 @@ The public DepositSafe brand direction is blue/navy with white/light-blue surfac
 
 **Why:** Existing starter assets were repeatedly mistaken for the approved branding. An asset being present in the app is not evidence the user approved it. A recreated blue mark based on a written description must not be described as the original approved logo.
 
-**How to apply:** Preserve this direction when editing public pages. Use a genuinely supplied approved logo when exact matching is requested; distinguish source assets from recreations. Do not change protected application or authentication behavior as part of a public visual redesign.
+**How to apply:** Preserve this direction when editing public pages and customer inner-page presentation. Use a genuinely supplied approved logo when exact matching is requested; distinguish source assets from recreations. Brand and copy cleanup must not change authentication, payments or provider behaviour, or expand the advertised scope of a check.
 
 Homepage and logo changes must use the user-uploaded approved logo and final homepage mock-up as the authoritative visual references, rather than textual approximations or generated stand-ins. The approved mark includes a vault inside a shield and a separate circular check badge.
 

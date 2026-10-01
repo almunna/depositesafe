@@ -71,10 +71,10 @@ export function RefundsPage() {
 
 const faqs: [string, string][] = [
   ['What is DepositSafe?', 'A service for UK landlords, agents and people in property-related transactions to run checks on people, bank accounts, property and businesses before committing or sending money.'],
-  ['Do I need an account?', 'No. You can start a check as a guest and you will receive a reference to follow it. An account keeps your checks together.'],
+  ['Do I need an account?', 'No. You can start a check as a guest, but keep its original browser tab open to retain access. A reference alone does not restore access in a new tab or on another device. An account keeps the checks started using that account together.'],
   ['Is the service live?', 'DepositSafe is pre-launch. Some checks may be limited or unavailable while we open up.'],
-  ['What does Right to Rent cover?', 'Right to Rent is for properties in England only.'],
-  ['What is Verify Both?', 'Mutual identity verification for two people, helping both sides make a more informed decision.'],
+  ['What does Right to Rent cover?', 'A Right to Rent check for landlords and letting agents checking a prospective tenant for a property in England only.'],
+  ['What is Verify Both?', 'You verify them. They verify you. Two people each complete their own identity verification, helping both sides make a more informed decision.'],
   ['What is the difference between Verify and Verify Plus?', 'Verify checks a person. Verify Plus checks a person and their bank account.'],
   ['How much do checks cost?', 'Company Check £4.99, Bank Account Check £7.99, Verify £9.99, Property Ownership Check £12.99, Verify Both £14.99, Verify Plus £14.99 and Right to Rent £19.99.'],
   ['What should I not send you?', 'Please never send ID documents, bank details or passwords through the contact form or email.'],

@@ -21,6 +21,7 @@ import {
   getCheckoutReturnUrl,
   secureCheckoutUrl,
 } from '@/components/payment-panel';
+import { getProductCopy } from '@/lib/product-copy';
 
 const statusLabels: Record<TransactionStatus, string> = {
   STARTED: 'Started',
@@ -66,12 +67,9 @@ export function isActiveStatus(status: TransactionStatus) {
 
 export function BrandMark({ inverse = false }: { inverse?: boolean }) {
   return (
-    <Link href="/" className={`group inline-flex items-center gap-2.5 focus-ring ${inverse ? 'text-sidebar-foreground' : 'text-foreground'}`} data-testid="link-brand-home">
-      <span className={`relative grid h-9 w-9 place-items-center rounded-xl border ${inverse ? 'border-sidebar-primary/45 bg-sidebar-primary/15' : 'border-primary/20 bg-primary/10'}`}>
-        <span className={`absolute h-4 w-4 rounded-[5px] border-2 ${inverse ? 'border-sidebar-primary' : 'border-primary'}`} />
-        <span className={`absolute h-1.5 w-1.5 rounded-full ${inverse ? 'bg-sidebar-primary' : 'bg-primary'}`} />
-      </span>
-      <span className="text-[1.03rem] font-extrabold tracking-[-0.04em]">Deposit<span className={inverse ? 'text-sidebar-primary' : 'text-primary'}>Safe</span></span>
+    <Link href="/" className={`focus-ring inline-flex shrink-0 self-start flex-col items-start ${inverse ? 'rounded-lg bg-white px-3 py-2' : ''}`} data-testid="link-brand-home" aria-label="DepositSafe home">
+      <img src={`${import.meta.env.BASE_URL}approved-depositsafe-logo.png`} alt="DepositSafe" className="h-9 w-auto mix-blend-multiply" />
+      <span className="-mt-1 whitespace-nowrap pl-9 text-[.62rem] font-medium text-[#4e5e74]">Verify with confidence.</span>
     </Link>
   );
 }
@@ -146,7 +144,7 @@ export function AppShell({ children, active = 'dashboard', title }: { children: 
   ];
   if (location.startsWith('/admin')) navItems.push({ id: 'admin', label: 'Admin oversight', href: '/admin' });
   return (
-    <div className="min-h-[100dvh] bg-background md:flex">
+    <div className="ds-customer min-h-[100dvh] bg-background md:flex">
       <aside className={`${mobileOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-40 flex w-[278px] flex-col bg-sidebar px-5 py-6 text-sidebar-foreground transition-transform duration-300 md:relative md:translate-x-0`} data-testid="sidebar">
         <BrandMark inverse />
         <div className="mt-12">
@@ -156,9 +154,9 @@ export function AppShell({ children, active = 'dashboard', title }: { children: 
           </nav>
         </div>
         <div className="mt-auto rounded-2xl border border-sidebar-border bg-sidebar-accent/45 p-4">
-          <div className="flex items-center gap-2 text-xs font-bold text-sidebar-primary"><span className="status-dot" /> Service operational</div>
-          <p className="mt-2 text-[.7rem] leading-5 text-sidebar-foreground/55">Your transaction records are held securely and only shared with the named participants.</p>
-          <p className="mt-3 font-mono-safe text-[.63rem] uppercase tracking-[.12em] text-sidebar-foreground/35">{health.isError ? 'Status unavailable' : health.isLoading ? 'Checking service' : 'DepositSafe online'}</p>
+          <div className="text-xs font-bold text-sidebar-foreground">Your DepositSafe checks</div>
+          <p className="mt-2 text-[.7rem] leading-5 text-sidebar-foreground/70">Follow the current status of your check records. A check helps inform your decision; it does not guarantee safety.</p>
+          <Link href="/help" className="focus-ring mt-3 inline-block text-xs font-semibold text-sidebar-foreground underline">Help and FAQs</Link>
         </div>
       </aside>
       {mobileOpen ? <button type="button" className="fixed inset-0 z-30 bg-foreground/25 md:hidden" onClick={() => setMobileOpen(false)} aria-label="Close navigation" data-testid="button-close-navigation" /> : null}
@@ -167,7 +165,7 @@ export function AppShell({ children, active = 'dashboard', title }: { children: 
           <button type="button" onClick={() => setMobileOpen(true)} className="focus-ring grid h-10 w-10 place-items-center rounded-lg border border-border bg-card md:hidden" aria-label="Open navigation" data-testid="button-open-navigation"><Menu className="h-4 w-4" /></button>
           <div className="hidden md:block"><p className="eyebrow text-muted-foreground">{title ?? 'Customer workspace'}</p><p className="mt-1 text-sm font-semibold">{userLabel}</p></div>
           <div className="ml-auto flex items-center gap-3">
-            <span className="hidden items-center gap-2 text-xs font-semibold text-muted-foreground sm:inline-flex"><span className={`status-dot ${health.isError ? 'text-destructive' : 'text-[#4e8c70]'}`} /> {health.isError ? 'Service check failed' : 'Protected workspace'}</span>
+            <span className="hidden items-center gap-2 text-xs font-semibold text-muted-foreground sm:inline-flex"><span className={`status-dot ${health.isError ? 'text-destructive' : 'text-primary'}`} /> {health.isError ? 'Service check failed' : 'Your check records'}</span>
             <Link href="/sign-in" className="focus-ring rounded-lg border border-border bg-card px-3 py-2 text-xs font-bold hover:bg-muted" data-testid="link-account">Account</Link>
           </div>
         </header>
@@ -178,6 +176,7 @@ export function AppShell({ children, active = 'dashboard', title }: { children: 
 }
 
 export function ProductCard({ product, index = 0 }: { product: Product; index?: number }) {
+  const copy = getProductCopy(product.slug);
   return (
     <Link href={`/products/${product.slug}`} className={`group focus-ring block rounded-2xl border border-border bg-card p-5 transition-transform duration-300 hover:-translate-y-1 hover:border-primary/35 hover:shadow-[0_16px_34px_rgba(28,55,63,.08)] animate-rise stagger-${Math.min(index + 1, 4)}`} data-testid={`card-product-${product.slug}`}>
       <div className="flex items-start justify-between gap-4">
@@ -185,9 +184,9 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
         <span className="font-mono-safe text-xs text-muted-foreground">{product.price || `£${(product.pricePence / 100).toFixed(2)}`}</span>
       </div>
       <h3 className="mt-6 text-base font-extrabold tracking-[-.02em]">{product.name}</h3>
-      <p className="mt-2 min-h-10 text-xs leading-5 text-muted-foreground">A protected verification check from {product.provider}.</p>
+      <p className="mt-2 min-h-10 text-xs leading-5 text-muted-foreground">{copy?.summary ?? `Find out more about ${product.name}.`}</p>
       <div className="mt-5 flex items-center justify-between border-t border-border/70 pt-4 text-xs font-bold text-primary">
-        <span>{product.participantMode === 'multiple' ? 'Multiple participants' : 'Single participant'}</span>
+        <span>View {product.name}</span>
         <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
       </div>
     </Link>
@@ -197,8 +196,8 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
 export function ProductGrid() {
   const products = useListProducts({ query: { queryKey: getListProductsQueryKey(), staleTime: 60000 } });
   if (products.isLoading) return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"><SkeletonRows count={6} /></div>;
-  if (products.isError) return <QueryError onRetry={() => void products.refetch()} message="Verify products are temporarily unavailable." />;
-  if (!products.data?.length) return <EmptyState title="No products are available" detail="The Verify V1 directory is waiting for its first configured product." />;
+  if (products.isError) return <QueryError onRetry={() => void products.refetch()} message="DepositSafe checks are temporarily unavailable." />;
+  if (!products.data?.length) return <EmptyState title="No checks are available right now" detail="Please visit Help for information about check availability." action={<Link href="/help" className="font-bold text-primary underline">Help and FAQs</Link>} />;
   return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{products.data.map((product, index) => <ProductCard key={product.slug} product={product} index={index} />)}</div>;
 }
 
@@ -274,12 +273,23 @@ export function TransactionForm({ product, products = [], compact = false }: { p
   };
   return (
     <form onSubmit={submit} className={`space-y-4 ${compact ? '' : 'mt-6'}`} data-testid="form-create-transaction">
-      {!product ? <label className="block"><span className="mb-2 block text-xs font-bold text-muted-foreground">Choose a Verify product</span><div className="relative"><select value={selectedSlug} onChange={(event) => setSelectedSlug(event.target.value)} className="focus-ring w-full appearance-none rounded-xl border border-input bg-background px-4 py-3 text-sm font-semibold" data-testid="select-product"><option value="">Select a product</option>{products.map((item) => <option key={item.slug} value={item.slug}>{item.name} · {item.price}</option>)}</select><ChevronDown className="pointer-events-none absolute right-3 top-3.5 h-4 w-4 text-muted-foreground" /></div></label> : null}
+      {!product ? <label className="block"><span className="mb-2 block text-xs font-bold text-muted-foreground">Choose a DepositSafe check</span><div className="relative"><select value={selectedSlug} onChange={(event) => setSelectedSlug(event.target.value)} className="focus-ring w-full appearance-none rounded-xl border border-input bg-background px-4 py-3 text-sm font-semibold" data-testid="select-product"><option value="">Select a check</option>{products.map((item) => <option key={item.slug} value={item.slug}>{item.name} · {item.price}</option>)}</select><ChevronDown className="pointer-events-none absolute right-3 top-3.5 h-4 w-4 text-muted-foreground" /></div></label> : null}
       <label className="block"><span className="mb-2 block text-xs font-bold text-muted-foreground">Your email address</span><input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" className="focus-ring w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60" data-testid="input-transaction-email" /></label>
-      {selectedProduct?.participantMode === 'multiple' ? <div className="space-y-4 rounded-xl border border-border/70 bg-muted/25 p-4"><p className="text-xs font-bold text-foreground">Participants</p><div className="grid gap-4 sm:grid-cols-2"><label className="block"><span className="mb-2 block text-xs font-bold text-muted-foreground">First participant</span><input required value={participantName} onChange={(event) => setParticipantName(event.target.value)} placeholder="Full name" className="focus-ring w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60" data-testid="input-participant-name" /></label><label className="block"><span className="mb-2 block text-xs font-bold text-muted-foreground">Email</span><input required type="email" value={participantEmail} onChange={(event) => setParticipantEmail(event.target.value)} placeholder="participant@example.com" className="focus-ring w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60" data-testid="input-participant-email" /></label><label className="block"><span className="mb-2 block text-xs font-bold text-muted-foreground">Second participant</span><input required value={secondParticipantName} onChange={(event) => setSecondParticipantName(event.target.value)} placeholder="Full name" className="focus-ring w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60" data-testid="input-second-participant-name" /></label><label className="block"><span className="mb-2 block text-xs font-bold text-muted-foreground">Email</span><input required type="email" value={secondParticipantEmail} onChange={(event) => setSecondParticipantEmail(event.target.value)} placeholder="participant@example.com" className="focus-ring w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60" data-testid="input-second-participant-email" /></label></div></div> : null}
+      {selectedProduct?.participantMode === 'multiple' ? (
+        <div className="space-y-4 rounded-xl border border-border/70 bg-muted/25 p-4">
+          <p className="text-xs font-bold text-foreground">Two people, two identity verifications</p>
+          <p className="text-xs leading-5 text-muted-foreground">Each person completes their own identity verification. Use each person’s own name and email address.</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block"><span className="mb-2 block text-xs font-bold text-muted-foreground">First person’s name</span><input required value={participantName} onChange={(event) => setParticipantName(event.target.value)} placeholder="Full name" className="focus-ring w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60" data-testid="input-participant-name" /></label>
+            <label className="block"><span className="mb-2 block text-xs font-bold text-muted-foreground">First person’s email</span><input required type="email" value={participantEmail} onChange={(event) => setParticipantEmail(event.target.value)} placeholder="person@example.com" className="focus-ring w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60" data-testid="input-participant-email" /></label>
+            <label className="block"><span className="mb-2 block text-xs font-bold text-muted-foreground">Second person’s name</span><input required value={secondParticipantName} onChange={(event) => setSecondParticipantName(event.target.value)} placeholder="Full name" className="focus-ring w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60" data-testid="input-second-participant-name" /></label>
+            <label className="block"><span className="mb-2 block text-xs font-bold text-muted-foreground">Second person’s email</span><input required type="email" value={secondParticipantEmail} onChange={(event) => setSecondParticipantEmail(event.target.value)} placeholder="person@example.com" className="focus-ring w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60" data-testid="input-second-participant-email" /></label>
+          </div>
+        </div>
+      ) : null}
       {formError ? <p className="rounded-lg bg-destructive/8 px-3 py-2 text-xs font-semibold text-destructive" data-testid="text-form-error">{formError}</p> : null}
-      <button type="submit" disabled={isSubmitting || createTransaction.isPending || createCheckout.isPending} className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3.5 text-sm font-extrabold text-primary-foreground transition-transform hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-70" data-testid="button-start-transaction">{isSubmitting || createTransaction.isPending || createCheckout.isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />} {isSubmitting || createTransaction.isPending || createCheckout.isPending ? 'Opening secure checkout…' : 'Start a protected check'}</button>
-      <p className="text-center text-[.68rem] leading-5 text-muted-foreground">You can track this check with its reference, even if you continue as a guest.</p>
+      <button type="submit" disabled={isSubmitting || createTransaction.isPending || createCheckout.isPending} className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3.5 text-sm font-extrabold text-primary-foreground transition-transform hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-70" data-testid="button-start-transaction">{isSubmitting || createTransaction.isPending || createCheckout.isPending ? <LoaderCircle className="h-4 w-4 shrink-0 animate-spin" /> : <ArrowRight className="h-4 w-4 shrink-0" />} {isSubmitting || createTransaction.isPending || createCheckout.isPending ? 'Opening checkout…' : selectedProduct ? `Start ${selectedProduct.name}` : 'Choose a check to continue'}</button>
+      <p className="text-center text-[.68rem] leading-5 text-muted-foreground">Starting a check opens checkout; verification is not complete until a result is available. If you continue as a guest, keep this browser tab open to retain access. A reference alone does not restore access in a new tab or on another device.</p>
     </form>
   );
 }

@@ -203,3 +203,27 @@
 .ds-public .ds-display { font-family: 'Inter', sans-serif; letter-spacing: -0.025em; }
 .ds-public .hp-hero-img { -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 38%); mask-image: linear-gradient(90deg, transparent 0, #000 38%); }
 @media (max-width: 1023px) { .ds-public .hp-hero-img { -webkit-mask-image: linear-gradient(0deg, transparent 0, #000 30%); mask-image: linear-gradient(0deg, transparent 0, #000 30%); } }
+
+/* Customer app scope: derived from approved .ds-public blue/navy tokens. Adopt via class="ds-customer" on AppShell/auth wrapper. */
+.ds-customer {
+  --background: 210 60% 98%; --foreground: 222 55% 14%; --border: 214 40% 88%; --input: 214 36% 84%;
+  --ring: 217 90% 52%; --card: 0 0% 100%; --card-foreground: 222 55% 14%; --card-border: 214 40% 88%;
+  --primary: 211 100% 42%; --primary-foreground: 0 0% 100%;
+  --secondary: 210 70% 94%; --secondary-foreground: 222 55% 14%;
+  --muted: 210 55% 95%; --muted-foreground: 219 20% 38%;
+  --accent: 205 90% 92%; --accent-foreground: 222 55% 14%;
+  --destructive: 0 62% 42%; --destructive-foreground: 0 0% 100%;
+  --popover: 0 0% 100%; --popover-foreground: 222 55% 14%; --popover-border: 214 40% 88%;
+  --ds-navy: 222 62% 13%;
+  --sidebar: 222 62% 13%; --sidebar-foreground: 210 60% 96%; --sidebar-border: 222 40% 24%;
+  --sidebar-primary: 211 100% 56%; --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 222 45% 20%; --sidebar-accent-foreground: 210 60% 98%; --sidebar-ring: 205 90% 70%;
+  --primary-border: hsl(var(--primary)); --accent-border: hsl(var(--accent));
+  --app-font-sans: 'Inter', 'Manrope', sans-serif;
+  --button-outline: rgba(14, 26, 58, 0.14); --elevate-1: rgba(14, 26, 58, 0.045); --elevate-2: rgba(14, 26, 58, 0.09);
+  background: hsl(var(--background)); color: hsl(var(--foreground)); font-family: 'Inter', 'Manrope', sans-serif;
+}
+.ds-customer .font-display, .ds-customer .ds-display { font-family: 'Inter', sans-serif; letter-spacing: -0.025em; }
+.ds-customer .focus-ring:focus-visible, .ds-customer a:focus-visible, .ds-customer button:focus-visible,
+.ds-customer summary:focus-visible, .ds-customer [role="button"]:focus-visible { outline: 3px solid hsl(var(--ring) / .6); outline-offset: 3px; }
+.ds-customer ::selection { background: hsl(var(--accent)); color: hsl(var(--foreground)); }
