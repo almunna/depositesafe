@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'wouter';
-import { Menu, X } from 'lucide-react';
+import { Menu, Search, X } from 'lucide-react';
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
@@ -26,12 +26,9 @@ export function ShieldIcon({ className = 'h-9 w-9' }: { className?: string }) {
 
 export function PublicLogo({ light = false }: { light?: boolean }) {
   return (
-    <Link href="/" className="inline-flex items-center gap-2.5" data-testid="link-public-logo" aria-label="DepositSafe home">
-      <ShieldIcon />
-      <span className="leading-none">
-        <span className={`ds-display block text-[1.2rem] font-extrabold ${light ? 'text-white' : 'text-[hsl(var(--ds-navy))]'}`}>Deposit<span className={light ? 'text-sky-300' : 'text-primary'}>Safe</span></span>
-        <span className={`mt-1 block text-[.64rem] font-semibold tracking-wide ${light ? 'text-white/65' : 'text-muted-foreground'}`}>Verify with confidence.</span>
-      </span>
+    <Link href="/" className={`inline-flex shrink-0 flex-col ${light ? 'rounded-lg bg-white px-3 py-2' : ''}`} data-testid="link-public-logo" aria-label="DepositSafe home">
+      <img src={`${import.meta.env.BASE_URL}approved-depositsafe-logo.png`} alt="DepositSafe" className="h-9 w-auto mix-blend-multiply" />
+      <span className="-mt-1 whitespace-nowrap pl-9 text-[.62rem] font-medium text-muted-foreground">Verify with confidence.</span>
     </Link>
   );
 }
@@ -40,9 +37,35 @@ const nav = [
   { label: 'Home', href: `${base}/` },
   { label: 'Our Checks', href: `${base}/#checks` },
   { label: 'How It Works', href: `${base}/#how-it-works` },
+  { label: 'Landlords & Agents', href: `${base}/#right-to-rent` },
   { label: 'Pricing', href: `${base}/#pricing` },
-  { label: 'Help/FAQs', href: `${base}/help` },
+  { label: 'FAQs', href: `${base}/help` },
+  { label: 'Help', href: `${base}/help` },
 ];
+
+const searchItems = [
+  ['Verify', 'verify'], ['Verify Both', 'verify-both'], ['Verify Plus', 'verify-plus'], ['Bank Account Check', 'bank-account-check'],
+  ['Property Ownership Check', 'property-ownership-check'], ['Company Check', 'company-check'], ['Right to Rent', 'right-to-rent'],
+];
+
+function HeaderSearch() {
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState('');
+  const hits = searchItems.filter(([n]) => n.toLowerCase().includes(q.trim().toLowerCase()));
+  return (
+    <div className="relative">
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-label="Search checks" className="grid h-10 w-10 place-items-center rounded-full hover:bg-secondary" data-testid="button-public-search"><Search className="h-4 w-4" /></button>
+      {open ? (
+        <div className="absolute right-0 top-12 z-50 w-72 rounded-xl border border-border bg-white p-3 shadow-xl">
+          <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') setOpen(false); }} placeholder="Search checks" aria-label="Search checks" className="w-full rounded-lg border border-border px-3 py-2 text-sm outline-none" data-testid="input-public-search" />
+          <ul className="mt-2 max-h-64 overflow-auto">
+            {hits.length ? hits.map(([n, slug]) => <li key={slug}><Link href={`/products/${slug}`} onClick={() => { setOpen(false); setQ(''); }} className="block rounded-lg px-3 py-2 text-sm font-semibold hover:bg-secondary">{n}</Link></li>) : <li className="px-3 py-2 text-sm text-muted-foreground">No matching checks</li>}
+          </ul>
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 function PublicHeader() {
   const [open, setOpen] = useState(false);
@@ -52,7 +75,7 @@ function PublicHeader() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [open]);
-  const link = 'rounded-lg px-3 py-2 text-sm font-semibold text-foreground/75 hover:bg-secondary hover:text-foreground';
+  const link = 'whitespace-nowrap rounded-lg px-2 py-2 text-xs font-semibold text-foreground/75 hover:bg-secondary hover:text-foreground xl:px-3 xl:text-sm';
   return (
     <header className="sticky top-0 z-40 border-b border-border/80 bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3 lg:px-8">
@@ -61,8 +84,9 @@ function PublicHeader() {
           {nav.map((n) => <a key={n.label} href={n.href} className={link} data-testid={`link-nav-${n.label.toLowerCase().replace(/\W+/g, '-')}`}>{n.label}</a>)}
         </nav>
         <div className="hidden items-center gap-2 lg:flex">
-          <Link href="/sign-in" className="rounded-lg px-4 py-2.5 text-sm font-bold text-[hsl(var(--ds-navy))] hover:bg-secondary" data-testid="link-public-sign-in">Sign in</Link>
-          <a href={`${base}/#get-started`} className="rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-sm hover:brightness-110" data-testid="link-public-get-started">Get Started</a>
+          <HeaderSearch />
+          <Link href="/sign-in" className="whitespace-nowrap rounded-full border border-primary px-5 py-2 text-sm font-semibold text-primary hover:bg-secondary" data-testid="link-public-sign-in">Sign in</Link>
+          <a href={`${base}/#get-started`} className="whitespace-nowrap rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-sm hover:brightness-110" data-testid="link-public-get-started">Get Started</a>
         </div>
         <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls="public-mobile-menu" aria-label={open ? 'Close menu' : 'Open menu'} className="grid h-11 w-11 place-items-center rounded-lg border border-border bg-white lg:hidden" data-testid="button-public-menu">
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}

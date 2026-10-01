@@ -9,17 +9,17 @@ The public DepositSafe brand direction is blue/navy with white/light-blue surfac
 
 **How to apply:** Preserve this direction when editing public pages. Use a genuinely supplied approved logo when exact matching is requested; distinguish source assets from recreations. Do not change protected application or authentication behavior as part of a public visual redesign.
 
-Further homepage or logo implementation must wait until the user uploads both the approved logo file and the approved final homepage mock-up image. Those two uploaded files are the authoritative visual references.
+Homepage and logo changes must use the user-uploaded approved logo and final homepage mock-up as the authoritative visual references, rather than textual approximations or generated stand-ins. The approved mark includes a vault inside a shield and a separate circular check badge.
 
-**Why:** The user explicitly required a pause until both files are supplied, rather than further implementation from descriptions or recreated assets.
+**Why:** The user required a pause and then supplied both actual reference files after several description-based implementations did not reproduce the approved target.
 
-**How to apply:** Ask for both files and verify both uploads are available before proceeding. If only one is supplied, request the missing reference and keep homepage changes paused.
+**How to apply:** Inspect both actual images before visual changes. Use the supplied logo artwork, not a redrawn generic shield/check. If either authoritative reference is unavailable, request it and pause implementation.
 
 The approved hero headline is exactly “Before you pay them, check them.” The brand tagline “Verify with confidence.” belongs to the logo/wordmark, not as a substitute hero headline. The closing banner must say “Certainty before commitment.” Verify Both must say “You verify them. They verify you.”
 
 **Why:** The user explicitly approved this final content direction and prohibited alternative taglines, layouts and brand language after earlier homepage iterations.
 
-**How to apply:** Do not paraphrase these strings. Preserve the approved order: human-led hero with five-category checklist, trust row, “Choose the right check for your situation” with seven product cards, three-step How it works, scenario chooser, dark blue closing trust banner. Changes to homepage presentation must not modify existing protected, authentication, transaction or backend/provider routes.
+**How to apply:** Do not paraphrase these strings. Follow the actual uploaded mock-up: compact human-led hero with five-category checklist and benefits; three featured cards (Verify, Verify Both in the blue centre card, Verify Plus); four smaller cards below; compact three-step process; six scenario tiles; dark blue key-photograph closing banner. Keep “Choose the right check for your situation”. Changes to homepage presentation must not modify existing protected, authentication, transaction or backend/provider routes.
 
 Product reference screenshots may contain outdated prices. Explicit locked V1 prices in the latest user instruction take precedence over screenshot pricing.
 
