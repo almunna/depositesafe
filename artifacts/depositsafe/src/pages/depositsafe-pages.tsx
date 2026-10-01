@@ -30,6 +30,7 @@ import {
   formatDateTime,
 } from '@/components/depositsafe';
 import { PaymentPanel, type PaymentReturnState } from '@/components/payment-panel';
+import { CompanyCheckPanel } from '@/components/company-check-panel';
 import { PublicLayout, usePageMeta } from '@/components/public/public-layout';
 
 export { HomePage } from './home-page';
@@ -155,9 +156,69 @@ export function TransactionDetailPage() {
   if (transaction.isLoading) return <AppShell active="transactions"><SkeletonRows count={3} /></AppShell>;
   if (transaction.isError || !transaction.data) return <AppShell active="transactions"><QueryError message="We could not find that transaction." onRetry={() => void transaction.refetch()} /></AppShell>;
   const item = transaction.data;
-  const stageStatuses = ['STARTED', 'PAYMENT_PENDING', 'PAID', 'VERIFICATION_IN_PROGRESS', 'VERIFICATION_COMPLETED', 'DELIVERED'] as const;
-  const currentIndex = Math.max(stageStatuses.indexOf(item.status as typeof stageStatuses[number]), 0);
-  return <AppShell active="transactions" title="Transaction detail"><div className="animate-rise"><Link href="/dashboard" className="focus-ring inline-flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-foreground" data-testid="link-back-dashboard"><ArrowLeft className="h-3.5 w-3.5" /> Back to overview</Link><div className="mt-8 flex flex-col justify-between gap-6 border-b border-border/80 pb-8 md:flex-row md:items-end"><div><p className="eyebrow text-primary">Protected transaction</p><h1 className="mt-3 max-w-2xl font-display text-4xl tracking-[-.035em] sm:text-5xl">{item.product.name}</h1><p className="mt-3 font-mono-safe text-xs tracking-wide text-muted-foreground">{item.reference}</p></div><StatusBadge status={item.status} /></div><div className="mt-8 grid gap-8 lg:grid-cols-[1.15fr_.85fr]"><section className="rounded-2xl border border-border bg-card p-5 sm:p-7"><div className="flex items-center justify-between"><div><p className="eyebrow text-primary">Status path</p><h2 className="mt-2 font-display text-3xl">Where things stand</h2></div><Clock3 className="h-5 w-5 text-muted-foreground" /></div><div className="mt-8 space-y-0">{stageStatuses.map((status, index) => { const reached = index <= currentIndex; return <div key={status} className="flex gap-4"><div className="flex flex-col items-center"><span className={`z-10 grid h-8 w-8 place-items-center rounded-full border ${reached ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-muted text-muted-foreground'}`}>{reached ? <Check className="h-4 w-4" /> : <span className="font-mono-safe text-[.65rem]">{index + 1}</span>}</span>{index < stageStatuses.length - 1 ? <span className={`h-12 w-px ${index < currentIndex ? 'bg-primary' : 'bg-border'}`} /> : null}</div><div className="pb-8 pt-1"><p className={`text-sm font-bold ${reached ? 'text-foreground' : 'text-muted-foreground'}`}>{status === 'STARTED' ? 'Transaction started' : status === 'PAYMENT_PENDING' ? 'Payment pending' : status === 'PAID' ? 'Payment confirmed' : status === 'VERIFICATION_IN_PROGRESS' ? 'Verification in progress' : status === 'VERIFICATION_COMPLETED' ? 'Verification completed' : 'Result delivered'}</p><p className="mt-1 text-xs leading-5 text-muted-foreground">{reached ? 'This stage has been recorded on your transaction.' : 'This stage will update when the previous step is complete.'}</p></div></div>; })}</div></section><aside className="space-y-4"><PaymentPanel transaction={item} returnState={returnState} onRefresh={refreshTransaction} /><div className="rounded-2xl border border-border bg-card p-5 sm:p-6"><p className="eyebrow text-muted-foreground">Record details</p><dl className="mt-5 space-y-4 text-sm"><DetailLine label="Created" value={formatDateTime(item.createdAt)} /><DetailLine label="Last updated" value={formatDateTime(item.updatedAt)} /><DetailLine label="Contact email" value={item.email} /><DetailLine label="Access" value={item.isGuest ? 'Guest reference' : 'Account workspace'} /></dl></div><div className="rounded-2xl border border-dashed border-border bg-muted/35 p-5"><p className="eyebrow text-muted-foreground">Participants</p>{item.participants.length ? <div className="mt-4 space-y-3">{item.participants.map((participant) => <div key={participant.id} className="flex items-center gap-3"><span className="grid h-8 w-8 place-items-center rounded-full bg-accent/35 text-foreground"><UserRound className="h-3.5 w-3.5" /></span><div><p className="text-sm font-bold">{participant.name}</p><p className="text-xs text-muted-foreground">{participant.email}</p></div></div>)}</div> : <p className="mt-3 text-sm text-muted-foreground">No additional participants recorded.</p>}</div></aside></div></div></AppShell>;
+  const isCompanyCheck = item.product.slug === 'company-check';
+  const stageStatuses: readonly string[] = isCompanyCheck
+    ? ['STARTED', 'PAYMENT_PENDING', 'PAID', 'VERIFICATION_PENDING', 'VERIFICATION_IN_PROGRESS', 'VERIFICATION_FAILED', 'RESULT_GENERATED', 'DELIVERED']
+    : ['STARTED', 'PAYMENT_PENDING', 'PAID', 'VERIFICATION_IN_PROGRESS', 'VERIFICATION_COMPLETED', 'DELIVERED'];
+  const currentIndex = Math.max(stageStatuses.indexOf(item.status), 0);
+  const stageTitle = (status: string) => {
+    if (isCompanyCheck) {
+      if (status === 'STARTED') return 'Transaction started';
+      if (status === 'PAYMENT_PENDING') return 'Payment pending';
+      if (status === 'PAID') return 'Payment confirmed';
+      if (status === 'VERIFICATION_PENDING') return 'Company Check queued';
+      if (status === 'VERIFICATION_IN_PROGRESS') return 'Companies House check in progress';
+      if (status === 'VERIFICATION_FAILED') return 'Companies House check needs attention';
+      if (status === 'RESULT_GENERATED') return 'Companies House result saved';
+      return 'Result delivered';
+    }
+    return status === 'STARTED' ? 'Transaction started' : status === 'PAYMENT_PENDING' ? 'Payment pending' : status === 'PAID' ? 'Payment confirmed' : status === 'VERIFICATION_IN_PROGRESS' ? 'Verification in progress' : status === 'VERIFICATION_COMPLETED' ? 'Verification completed' : 'Result delivered';
+  };
+  return (
+    <AppShell active="transactions" title="Transaction detail">
+      <div className="animate-rise">
+        <Link href="/dashboard" className="focus-ring inline-flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-foreground" data-testid="link-back-dashboard"><ArrowLeft className="h-3.5 w-3.5" /> Back to overview</Link>
+        <div className="mt-8 flex flex-col justify-between gap-6 border-b border-border/80 pb-8 md:flex-row md:items-end">
+          <div><p className="eyebrow text-primary">Protected transaction</p><h1 className="mt-3 max-w-2xl font-display text-4xl tracking-[-.035em] sm:text-5xl">{item.product.name}</h1><p className="mt-3 font-mono-safe text-xs tracking-wide text-muted-foreground">{item.reference}</p></div>
+          <StatusBadge status={item.status} />
+        </div>
+        <div className="mt-8 grid gap-8 lg:grid-cols-[1.15fr_.85fr]">
+          <section className="rounded-2xl border border-border bg-card p-5 sm:p-7">
+            <div className="flex items-center justify-between"><div><p className="eyebrow text-primary">Status path</p><h2 className="mt-2 font-display text-3xl">Where things stand</h2></div><Clock3 className="h-5 w-5 text-muted-foreground" /></div>
+            <div className="mt-8 space-y-0">
+              {stageStatuses.map((status, index) => {
+                const reached = index <= currentIndex;
+                return (
+                  <div key={status} className="flex gap-4">
+                    <div className="flex flex-col items-center">
+                      <span className={`z-10 grid h-8 w-8 place-items-center rounded-full border ${reached ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-muted text-muted-foreground'}`}>{reached ? <Check className="h-4 w-4" /> : <span className="font-mono-safe text-[.65rem]">{index + 1}</span>}</span>
+                      {index < stageStatuses.length - 1 ? <span className={`h-12 w-px ${index < currentIndex ? 'bg-primary' : 'bg-border'}`} /> : null}
+                    </div>
+                    <div className="pb-8 pt-1">
+                      <p className={`text-sm font-bold ${reached ? 'text-foreground' : 'text-muted-foreground'}`}>{stageTitle(status)}</p>
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                        {reached
+                          ? isCompanyCheck && status === 'RESULT_GENERATED'
+                            ? 'The selected company result has been saved to this transaction.'
+                            : 'This stage has been recorded on your transaction.'
+                          : 'This stage will update when the previous step is complete.'}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+          <aside className="space-y-4">
+            <PaymentPanel transaction={item} returnState={returnState} onRefresh={refreshTransaction} />
+            <div className="rounded-2xl border border-border bg-card p-5 sm:p-6"><p className="eyebrow text-muted-foreground">Record details</p><dl className="mt-5 space-y-4 text-sm"><DetailLine label="Created" value={formatDateTime(item.createdAt)} /><DetailLine label="Last updated" value={formatDateTime(item.updatedAt)} /><DetailLine label="Contact email" value={item.email} /><DetailLine label="Access" value={item.isGuest ? 'Guest reference' : 'Account workspace'} /></dl></div>
+            <div className="rounded-2xl border border-dashed border-border bg-muted/35 p-5"><p className="eyebrow text-muted-foreground">Participants</p>{item.participants.length ? <div className="mt-4 space-y-3">{item.participants.map((participant) => <div key={participant.id} className="flex items-center gap-3"><span className="grid h-8 w-8 place-items-center rounded-full bg-accent/35 text-foreground"><UserRound className="h-3.5 w-3.5" /></span><div><p className="text-sm font-bold">{participant.name}</p><p className="text-xs text-muted-foreground">{participant.email}</p></div></div>)}</div> : <p className="mt-3 text-sm text-muted-foreground">No additional participants recorded.</p>}</div>
+          </aside>
+        </div>
+        {isCompanyCheck ? <div className="mt-8"><CompanyCheckPanel reference={item.reference} status={item.status} onTransactionRefresh={refreshTransaction} /></div> : null}
+      </div>
+    </AppShell>
+  );
 }
 
 function DetailLine({ label, value }: { label: string; value: string }) {

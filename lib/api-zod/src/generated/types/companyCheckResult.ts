@@ -13,6 +13,14 @@ export interface CompanyCheckResult {
   companyNumber: string;
   companyName: string;
   companyStatus: string;
+  companyType?: string;
+  dateOfCreation?: string | null;
+  dateOfCessation?: string | null;
+  registeredOfficeAddress?: string | null;
+  sicCodes?: string[];
+  nextAccountsDue?: string | null;
+  nextConfirmationStatementDue?: string | null;
+  sourceUrl?: string;
   outcome: string;
   transactionStatus: TransactionStatus;
   checkedAt: Date;

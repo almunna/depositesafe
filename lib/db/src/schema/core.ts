@@ -140,6 +140,7 @@ export const resultsTable = pgTable("results", {
   id: uuid("id").defaultRandom().primaryKey(),
   transactionId: uuid("transaction_id").notNull().references(() => transactionsTable.id, { onDelete: "cascade" }),
   outcome: text("outcome"),
+  data: jsonb("data").$type<Record<string, unknown>>().notNull().default({}),
   generatedAt: timestamp("generated_at", { withTimezone: true }),
   deliveredAt: timestamp("delivered_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

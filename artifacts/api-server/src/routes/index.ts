@@ -7,6 +7,7 @@ import paymentsRouter from "./payments";
 import adminRouter from "./admin";
 import webhooksRouter from "./webhooks";
 import contactRouter from "./contact";
+import companiesHouseRouter from "./companies-house";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use(paymentsRouter);
 router.use(adminRouter);
 router.use(webhooksRouter);
 router.use(contactRouter);
+router.use(companiesHouseRouter);
 
 export default router;

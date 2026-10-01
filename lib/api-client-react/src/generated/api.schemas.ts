@@ -103,6 +103,8 @@ export interface CompanySearchResult {
 }
 
 export interface CompanySearchResponse {
+  totalResults?: number;
+  truncated?: boolean;
   items: CompanySearchResult[];
 }
 
@@ -120,6 +122,14 @@ export interface CompanyCheckResult {
   companyNumber: string;
   companyName: string;
   companyStatus: string;
+  companyType?: string;
+  dateOfCreation?: string | null;
+  dateOfCessation?: string | null;
+  registeredOfficeAddress?: string | null;
+  sicCodes?: string[];
+  nextAccountsDue?: string | null;
+  nextConfirmationStatementDue?: string | null;
+  sourceUrl?: string;
   outcome: string;
   transactionStatus: TransactionStatus;
   checkedAt: string;

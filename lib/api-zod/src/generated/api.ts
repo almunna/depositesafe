@@ -219,6 +219,8 @@ export const SearchCompaniesHouseCompaniesQueryParams = zod.object({
 })
 
 export const SearchCompaniesHouseCompaniesResponse = zod.object({
+  "totalResults": zod.number().int().optional(),
+  "truncated": zod.boolean().optional(),
   "items": zod.array(zod.object({
   "companyNumber": zod.string(),
   "name": zod.string(),
@@ -250,6 +252,14 @@ export const RunCompaniesHouseCheckResponse = zod.object({
   "companyNumber": zod.string(),
   "companyName": zod.string(),
   "companyStatus": zod.string(),
+  "companyType": zod.string().optional(),
+  "dateOfCreation": zod.string().nullish(),
+  "dateOfCessation": zod.string().nullish(),
+  "registeredOfficeAddress": zod.string().nullish(),
+  "sicCodes": zod.array(zod.string()).optional(),
+  "nextAccountsDue": zod.string().nullish(),
+  "nextConfirmationStatementDue": zod.string().nullish(),
+  "sourceUrl": zod.string().optional(),
   "outcome": zod.string(),
   "transactionStatus": zod.enum(['STARTED', 'PAYMENT_PENDING', 'PAID', 'VERIFICATION_PENDING', 'VERIFICATION_IN_PROGRESS', 'VERIFICATION_COMPLETED', 'RESULT_GENERATED', 'DELIVERED', 'PAYMENT_FAILED', 'AWAITING_PARTICIPANT', 'EXPIRED', 'VERIFICATION_FAILED', 'MANUAL_ATTENTION']),
   "checkedAt": zod.coerce.date()
@@ -269,6 +279,14 @@ export const GetCompaniesHouseResultResponse = zod.object({
   "companyNumber": zod.string(),
   "companyName": zod.string(),
   "companyStatus": zod.string(),
+  "companyType": zod.string().optional(),
+  "dateOfCreation": zod.string().nullish(),
+  "dateOfCessation": zod.string().nullish(),
+  "registeredOfficeAddress": zod.string().nullish(),
+  "sicCodes": zod.array(zod.string()).optional(),
+  "nextAccountsDue": zod.string().nullish(),
+  "nextConfirmationStatementDue": zod.string().nullish(),
+  "sourceUrl": zod.string().optional(),
   "outcome": zod.string(),
   "transactionStatus": zod.enum(['STARTED', 'PAYMENT_PENDING', 'PAID', 'VERIFICATION_PENDING', 'VERIFICATION_IN_PROGRESS', 'VERIFICATION_COMPLETED', 'RESULT_GENERATED', 'DELIVERED', 'PAYMENT_FAILED', 'AWAITING_PARTICIPANT', 'EXPIRED', 'VERIFICATION_FAILED', 'MANUAL_ATTENTION']),
   "checkedAt": zod.coerce.date()

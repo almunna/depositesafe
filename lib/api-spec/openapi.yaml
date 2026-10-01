@@ -578,6 +578,10 @@ components:
     CompanySearchResponse:
       type: object
       properties:
+        totalResults:
+          type: integer
+        truncated:
+          type: boolean
         items:
           type: array
           items:
@@ -619,6 +623,29 @@ components:
         companyName:
           type: string
         companyStatus:
+          type: string
+        companyType:
+          type: string
+        dateOfCreation:
+          type: string
+          nullable: true
+        dateOfCessation:
+          type: string
+          nullable: true
+        registeredOfficeAddress:
+          type: string
+          nullable: true
+        sicCodes:
+          type: array
+          items:
+            type: string
+        nextAccountsDue:
+          type: string
+          nullable: true
+        nextConfirmationStatementDue:
+          type: string
+          nullable: true
+        sourceUrl:
           type: string
         outcome:
           type: string

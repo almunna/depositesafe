@@ -8,5 +8,7 @@
 import type { CompanySearchResult } from './companySearchResult';
 
 export interface CompanySearchResponse {
+  totalResults?: number;
+  truncated?: boolean;
   items: CompanySearchResult[];
 }
