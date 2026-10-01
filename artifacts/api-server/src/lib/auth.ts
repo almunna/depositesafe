@@ -1,4 +1,4 @@
-import { getAuth } from "@clerk/express";
+import { clerkClient, getAuth } from "@clerk/express";
 import type { NextFunction, Request, RequestHandler, Response } from "express";
 import { createHash, timingSafeEqual } from "node:crypto";
 import { db, transactionsTable, userEmailsTable, usersTable, type Transaction } from "@workspace/db";
@@ -102,28 +102,52 @@ export async function getPrimaryEmail(userId: string): Promise<string> {
   return email?.email ?? "account@depositsafe.local";
 }
 
-export function isAdminRequest(req: Request, role: string): boolean {
+function isAdminRoleClaim(value: unknown): boolean {
+  if (typeof value !== "object" || value === null) return false;
+  return "role" in value && value.role === "admin";
+}
+
+function hasAdminRoleClaim(claims: unknown): boolean {
+  if (typeof claims !== "object" || claims === null) return false;
+  const record = claims as Record<string, unknown>;
+  return (
+    record.role === "admin" ||
+    record.org_role === "admin" ||
+    isAdminRoleClaim(record.metadata) ||
+    isAdminRoleClaim(record.public_metadata) ||
+    isAdminRoleClaim(record.publicMetadata)
+  );
+}
+
+function isProductionRuntime(): boolean {
+  return (
+    process.env.NODE_ENV === "production" ||
+    process.env.REPLIT_DEPLOYMENT === "1" ||
+    Boolean(process.env.WEB_REPL_RENEWAL && !process.env.REPL_IDENTITY)
+  );
+}
+
+export async function isAdminRequest(req: Request, role: string): Promise<boolean> {
   const auth = getAuth(req);
-  const claimMetadata = auth.sessionClaims?.metadata;
-  const claimRole =
-    typeof claimMetadata === "object" &&
-    claimMetadata !== null &&
-    "role" in claimMetadata
-      ? claimMetadata.role
-      : undefined;
+  if (role === "admin" || hasAdminRoleClaim(auth.sessionClaims)) return true;
+  if (!isProductionRuntime()) return true;
+
   const configuredEmails = (process.env.DEPOSITSAFE_ADMIN_EMAILS ?? "")
     .split(",")
     .map((value) => value.trim().toLowerCase())
     .filter(Boolean);
-  const requestEmail = req.header("x-depositsafe-admin-email")?.toLowerCase();
-
-  if (role === "admin" || claimRole === "admin") {
-    return true;
+  if (!auth.userId || configuredEmails.length === 0) return false;
+  try {
+    const user = await clerkClient.users.getUser(auth.userId);
+    const primaryEmail = user.primaryEmailAddress;
+    return Boolean(
+      primaryEmail &&
+      primaryEmail.verification?.status === "verified" &&
+      configuredEmails.includes(primaryEmail.emailAddress.trim().toLowerCase()),
+    );
+  } catch {
+    return false;
   }
-  if (requestEmail && configuredEmails.includes(requestEmail)) {
-    return true;
-  }
-  return process.env.NODE_ENV !== "production";
 }
 
 export const requireAdmin: RequestHandler = async (
@@ -138,7 +162,7 @@ export const requireAdmin: RequestHandler = async (
   }
 
   const user = await ensureLocalUser(userId);
-  if (!isAdminRequest(req, user.role)) {
+  if (!(await isAdminRequest(req, user.role))) {
     res.status(403).json({ error: "Administrator access required" });
     return;
   }

@@ -286,8 +286,8 @@ paths:
     post:
       operationId: syncStripeCatalog
       tags: [admin]
-      summary: Create or update Stripe products/prices from the DepositSafe catalogue
-      description: DepositSafe remains the catalogue source of truth; this idempotent setup action stores Stripe references on existing products.
+      summary: Map existing Stripe products/prices to the DepositSafe catalogue
+      description: Maps the runtime environment's existing Stripe prices to locked DepositSafe products without creating or changing live Stripe objects.
       security:
         - clerkSession: []
       responses:
@@ -413,7 +413,7 @@ paths:
       operationId: receiveStripeWebhook
       tags: [webhooks]
       summary: Receive a signed Stripe event
-      description: Stripe-Signature is verified against the raw request bytes and STRIPE_WEBHOOK_SECRET before the event is processed.
+      description: Stripe-Signature is verified against the raw request bytes using the managed webhook signing secret before the event is processed.
       parameters:
         - name: Stripe-Signature
           in: header

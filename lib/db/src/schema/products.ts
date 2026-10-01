@@ -11,6 +11,8 @@ export const productConfigurationsTable = pgTable("product_configurations", {
   participantMode: text("participant_mode").notNull().default("single"),
   stripeProductId: text("stripe_product_id"),
   stripePriceId: text("stripe_price_id"),
+  stripeSandboxProductId: text("stripe_sandbox_product_id"),
+  stripeSandboxPriceId: text("stripe_sandbox_price_id"),
   active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),

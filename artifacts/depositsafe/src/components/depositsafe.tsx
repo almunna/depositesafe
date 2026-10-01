@@ -10,10 +10,17 @@ import {
   type Transaction,
   type TransactionStatus,
   useCreateTransaction,
+  useCreateStripeCheckoutSession,
   useGetCurrentUser,
   useHealthCheck,
   useListProducts,
 } from '@workspace/api-client-react';
+import {
+  checkoutErrorStorageKey,
+  checkoutIdempotencyKey,
+  getCheckoutReturnUrl,
+  secureCheckoutUrl,
+} from '@/components/payment-panel';
 
 const statusLabels: Record<TransactionStatus, string> = {
   STARTED: 'Started',
@@ -198,6 +205,8 @@ export function ProductGrid() {
 export function TransactionForm({ product, products = [], compact = false }: { product?: Product; products?: Product[]; compact?: boolean }) {
   const [, setLocation] = useLocation();
   const createTransaction = useCreateTransaction();
+  const createCheckout = useCreateStripeCheckoutSession();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedSlug, setSelectedSlug] = useState(product?.slug ?? products[0]?.slug ?? '');
   const selectedProduct = product ?? products.find((item) => item.slug === selectedSlug);
   const [email, setEmail] = useState('');
@@ -206,9 +215,10 @@ export function TransactionForm({ product, products = [], compact = false }: { p
   const [secondParticipantName, setSecondParticipantName] = useState('');
   const [secondParticipantEmail, setSecondParticipantEmail] = useState('');
   const [formError, setFormError] = useState('');
-  const submit = (event: FormEvent<HTMLFormElement>) => {
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFormError('');
+    if (isSubmitting) return;
     if (!selectedProduct || !email.trim()) { setFormError('Choose a product and enter your email to continue.'); return; }
     if (selectedProduct.participantMode === 'multiple' && (!participantName.trim() || !participantEmail.trim() || !secondParticipantName.trim() || !secondParticipantEmail.trim())) { setFormError('Add both participants’ names and emails to continue.'); return; }
     const input = {
@@ -216,12 +226,51 @@ export function TransactionForm({ product, products = [], compact = false }: { p
       email: email.trim(),
       ...(selectedProduct.participantMode === 'multiple' ? { participants: [{ name: participantName.trim(), email: participantEmail.trim(), role: 'participant' }, { name: secondParticipantName.trim(), email: secondParticipantEmail.trim(), role: 'participant' }] } : {}),
     };
-    createTransaction.mutate({ data: input }, { onSuccess: (transaction) => {
-      if (transaction.guestCapability && typeof window !== 'undefined') {
-        window.sessionStorage.setItem(`depositsafe:guest-capability:${transaction.reference}`, transaction.guestCapability);
+    setIsSubmitting(true);
+    let created: Transaction | undefined;
+    let guestAccessStored = false;
+    try {
+      created = await createTransaction.mutateAsync({ data: input });
+      if (created.guestCapability && typeof window !== 'undefined') {
+        window.sessionStorage.setItem(`depositsafe:guest-capability:${created.reference}`, created.guestCapability);
+        guestAccessStored = true;
       }
-      setLocation(`/transactions/${transaction.reference}`);
-    }, onError: () => setFormError('We could not start that transaction. Please try again.') });
+      if (!created.isGuest) guestAccessStored = true;
+      if (!guestAccessStored) {
+        throw new Error('The transaction was created, but guest access could not be saved in this browser.');
+      }
+      const checkout = await createCheckout.mutateAsync({
+        reference: created.reference,
+        data: {
+          idempotencyKey: checkoutIdempotencyKey(created.reference),
+          successUrl: getCheckoutReturnUrl(created.reference, 'success'),
+          cancelUrl: getCheckoutReturnUrl(created.reference, 'cancel'),
+        },
+      });
+      if (checkout.paymentStatus === 'failed') throw new Error('The payment provider could not create a checkout session. Please try again.');
+      if (!checkout.checkoutSessionReference || !Number.isFinite(checkout.amountPence) || checkout.amountPence < 0) {
+        throw new Error('The checkout response was incomplete. Please try again.');
+      }
+      window.location.assign(secureCheckoutUrl(checkout.checkoutUrl));
+    } catch (error) {
+      const message = error instanceof Error && error.message.trim()
+        ? error.message
+        : 'We could not start secure checkout. Please try again.';
+      if (created && guestAccessStored) {
+        try {
+          window.sessionStorage.setItem(checkoutErrorStorageKey(created.reference), message.slice(0, 500));
+        } catch {
+          // The reference remains recoverable from the destination page even if optional error storage is blocked.
+        }
+        setLocation(`/transactions/${encodeURIComponent(created.reference)}?payment=checkout-error`);
+      } else if (created) {
+        setFormError(`${message} Keep this reference: ${created.reference}`);
+      } else {
+        setFormError(message);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   return (
     <form onSubmit={submit} className={`space-y-4 ${compact ? '' : 'mt-6'}`} data-testid="form-create-transaction">
@@ -229,7 +278,7 @@ export function TransactionForm({ product, products = [], compact = false }: { p
       <label className="block"><span className="mb-2 block text-xs font-bold text-muted-foreground">Your email address</span><input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" className="focus-ring w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60" data-testid="input-transaction-email" /></label>
       {selectedProduct?.participantMode === 'multiple' ? <div className="space-y-4 rounded-xl border border-border/70 bg-muted/25 p-4"><p className="text-xs font-bold text-foreground">Participants</p><div className="grid gap-4 sm:grid-cols-2"><label className="block"><span className="mb-2 block text-xs font-bold text-muted-foreground">First participant</span><input required value={participantName} onChange={(event) => setParticipantName(event.target.value)} placeholder="Full name" className="focus-ring w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60" data-testid="input-participant-name" /></label><label className="block"><span className="mb-2 block text-xs font-bold text-muted-foreground">Email</span><input required type="email" value={participantEmail} onChange={(event) => setParticipantEmail(event.target.value)} placeholder="participant@example.com" className="focus-ring w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60" data-testid="input-participant-email" /></label><label className="block"><span className="mb-2 block text-xs font-bold text-muted-foreground">Second participant</span><input required value={secondParticipantName} onChange={(event) => setSecondParticipantName(event.target.value)} placeholder="Full name" className="focus-ring w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60" data-testid="input-second-participant-name" /></label><label className="block"><span className="mb-2 block text-xs font-bold text-muted-foreground">Email</span><input required type="email" value={secondParticipantEmail} onChange={(event) => setSecondParticipantEmail(event.target.value)} placeholder="participant@example.com" className="focus-ring w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60" data-testid="input-second-participant-email" /></label></div></div> : null}
       {formError ? <p className="rounded-lg bg-destructive/8 px-3 py-2 text-xs font-semibold text-destructive" data-testid="text-form-error">{formError}</p> : null}
-      <button type="submit" disabled={createTransaction.isPending} className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3.5 text-sm font-extrabold text-primary-foreground transition-transform hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-70" data-testid="button-start-transaction">{createTransaction.isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />} {createTransaction.isPending ? 'Starting check…' : 'Start a protected check'}</button>
+      <button type="submit" disabled={isSubmitting || createTransaction.isPending || createCheckout.isPending} className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3.5 text-sm font-extrabold text-primary-foreground transition-transform hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-70" data-testid="button-start-transaction">{isSubmitting || createTransaction.isPending || createCheckout.isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />} {isSubmitting || createTransaction.isPending || createCheckout.isPending ? 'Opening secure checkout…' : 'Start a protected check'}</button>
       <p className="text-center text-[.68rem] leading-5 text-muted-foreground">You can track this check with its reference, even if you continue as a guest.</p>
     </form>
   );

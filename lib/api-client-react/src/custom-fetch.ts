@@ -91,7 +91,7 @@ function mergeHeaders(...sources: Array<HeadersInit | undefined>): Headers {
   return headers;
 }
 
-function attachGuestCapability(headers: Headers, input: RequestInfo | URL): void {
+function attachGuestCapability(headers: Headers, input: RequestInfo | URL, method: string): void {
   if (headers.has("x-guest-capability") || typeof window === "undefined") return;
   let pathname: string;
   try {
@@ -99,7 +99,9 @@ function attachGuestCapability(headers: Headers, input: RequestInfo | URL): void
   } catch {
     return;
   }
-  const match = pathname.match(/\/transactions\/([^/]+)\/(?:payments|companies-house)(?:\/|$)/);
+  const match =
+    pathname.match(/\/transactions\/([^/]+)\/(?:payments|companies-house)(?:\/|$)/) ??
+    (method === "GET" ? pathname.match(/\/transactions\/([^/]+)\/?$/) : null);
   if (!match) return;
   try {
     const reference = decodeURIComponent(match[1]);
@@ -355,7 +357,7 @@ export async function customFetch<T = unknown>(
   }
 
   const headers = mergeHeaders(isRequest(input) ? input.headers : undefined, headersInit);
-  attachGuestCapability(headers, input);
+  attachGuestCapability(headers, input, method);
 
   if (
     typeof init.body === "string" &&

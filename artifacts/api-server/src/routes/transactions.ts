@@ -8,10 +8,15 @@ import {
   productConfigurationsTable,
   transactionsTable,
 } from "@workspace/db";
-import { ensureLocalUser, optionalUserId, requireAuth, type AuthenticatedRequest } from "../lib/auth";
+import {
+  authorizeTransactionAccess,
+  ensureLocalUser,
+  optionalUserId,
+  requireAuth,
+  type AuthenticatedRequest,
+} from "../lib/auth";
 import {
   ensureSeedProducts,
-  findTransactionByReference,
   findTransactionsForUser,
   serializeProduct,
   serializeTransactions,
@@ -98,11 +103,9 @@ router.get("/transactions/:reference", async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const transaction = await findTransactionByReference(parsed.data.reference);
-  if (!transaction) {
-    res.status(404).json({ error: "Transaction not found" });
-    return;
-  }
+  const authorized = await authorizeTransactionAccess(req, res, parsed.data.reference);
+  if (!authorized) return;
+  const [transaction] = await serializeTransactions([authorized]);
   res.json(GetTransactionResponse.parse(transaction));
 });
 

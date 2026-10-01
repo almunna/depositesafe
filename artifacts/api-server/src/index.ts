@@ -1,6 +1,7 @@
 import app from "./app";
 import { logger } from "./lib/logger";
 import { ensureSeedProducts } from "./lib/transactions";
+import { initializeStripePayments } from "./lib/stripe-setup";
 
 const rawPort = process.env["PORT"];
 
@@ -23,5 +24,11 @@ app.listen(port, async (err) => {
   }
 
   await ensureSeedProducts();
+  try {
+    await initializeStripePayments();
+    logger.info("DepositSafe Stripe payments initialized for the runtime environment.");
+  } catch (error) {
+    logger.error({ message: error instanceof Error ? error.message : "Unknown" }, "Stripe payments unavailable; configuration must be resolved.");
+  }
   logger.info({ port }, "Server listening");
 });

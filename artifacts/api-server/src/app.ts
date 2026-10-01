@@ -10,6 +10,7 @@ import {
   clerkProxyMiddleware,
   getClerkProxyHost,
 } from "./middlewares/clerkProxyMiddleware";
+import { WebhookHandlers } from "./lib/webhookHandlers";
 
 const app: Express = express();
 
@@ -34,6 +35,22 @@ app.use(
 );
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 app.use(cors());
+app.post("/api/webhooks/stripe", express.raw({ type: "application/json", limit: "1mb" }), async (req, res) => {
+  const signature = req.header("stripe-signature");
+  if (!signature || !Buffer.isBuffer(req.body)) {
+    res.status(400).json({ error: "Stripe signature and raw request body are required." });
+    return;
+  }
+  try {
+    await WebhookHandlers.processWebhook(req.body, signature);
+    res.json({ received: true });
+  } catch (error) {
+    const invalid = error instanceof Error && (error.name === "StripeSignatureVerificationError"
+      || /signature|timestamp outside|environment mismatch/i.test(error.message));
+    req.log.warn({ errorType: error instanceof Error ? error.name : "Unknown" }, "Stripe webhook rejected");
+    res.status(invalid ? 400 : 503).json({ error: invalid ? "Invalid Stripe webhook signature or environment." : "Stripe event processing unavailable; delivery will be retried." });
+  }
+});
 app.use(express.json({
   verify(req, _res, buffer) {
     (req as express.Request & { rawBody?: Buffer }).rawBody = Buffer.from(buffer);

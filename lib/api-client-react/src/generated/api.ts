@@ -1046,8 +1046,8 @@ export const getSyncStripeCatalogUrl = () => {
 }
 
 /**
- * DepositSafe remains the catalogue source of truth; this idempotent setup action stores Stripe references on existing products.
- * @summary Create or update Stripe products/prices from the DepositSafe catalogue
+ * Maps the runtime environment's existing Stripe prices to locked DepositSafe products without creating or changing live Stripe objects.
+ * @summary Map existing Stripe products/prices to the DepositSafe catalogue
  */
 export const syncStripeCatalog = async ( options?: Parameters<typeof customFetch>[1]): Promise<StripeCatalogSyncResponse> => {
 
@@ -1099,7 +1099,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
     /**
- * @summary Create or update Stripe products/prices from the DepositSafe catalogue
+ * @summary Map existing Stripe products/prices to the DepositSafe catalogue
  */
 export const useSyncStripeCatalog = <TError = ErrorType<Error>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof syncStripeCatalog>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -1452,7 +1452,7 @@ export const getReceiveStripeWebhookUrl = () => {
 }
 
 /**
- * Stripe-Signature is verified against the raw request bytes and STRIPE_WEBHOOK_SECRET before the event is processed.
+ * Stripe-Signature is verified against the raw request bytes using the managed webhook signing secret before the event is processed.
  * @summary Receive a signed Stripe event
  */
 export const receiveStripeWebhook = async (stripeWebhookEvent: StripeWebhookEvent, options?: Parameters<typeof customFetch>[1]): Promise<ProviderWebhookResponse> => {
