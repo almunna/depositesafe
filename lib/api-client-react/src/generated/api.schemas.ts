@@ -91,6 +91,130 @@ export interface Transaction {
   createdAt: string;
   updatedAt: string;
   isGuest: boolean;
+  guestCapability?: string | null;
+}
+
+export interface CompanySearchResult {
+  companyNumber: string;
+  name: string;
+  status: string;
+  dateOfCreation?: string | null;
+  addressSnippet?: string | null;
+}
+
+export interface CompanySearchResponse {
+  items: CompanySearchResult[];
+}
+
+export interface CompanyCheckInput {
+  /**
+     * @minLength 1
+     * @maxLength 8
+     */
+  companyNumber: string;
+}
+
+export interface CompanyCheckResult {
+  verificationId: string;
+  transactionReference: string;
+  companyNumber: string;
+  companyName: string;
+  companyStatus: string;
+  outcome: string;
+  transactionStatus: TransactionStatus;
+  checkedAt: string;
+}
+
+export interface StripeCheckoutInput {
+  /**
+     * @minLength 8
+     * @maxLength 128
+     */
+  idempotencyKey: string;
+  successUrl: string;
+  cancelUrl: string;
+}
+
+export type StripeCheckoutResponsePaymentStatus = typeof StripeCheckoutResponsePaymentStatus[keyof typeof StripeCheckoutResponsePaymentStatus];
+
+
+export const StripeCheckoutResponsePaymentStatus = {
+  pending: 'pending',
+  paid: 'paid',
+  failed: 'failed',
+} as const;
+
+export interface StripeCheckoutResponse {
+  checkoutSessionReference: string;
+  checkoutUrl: string;
+  paymentStatus: StripeCheckoutResponsePaymentStatus;
+  amountPence: number;
+}
+
+export interface StripeCatalogSyncResponse {
+  productsSynced: number;
+  pricesSynced: number;
+}
+
+export type StripeWebhookEventData = { [key: string]: unknown };
+
+export interface StripeWebhookEvent {
+  id: string;
+  type: string;
+  created: number;
+  data: StripeWebhookEventData;
+  [key: string]: unknown;
+ }
+
+export interface ProviderWebhookResponse {
+  accepted: boolean;
+  duplicate: boolean;
+  stale: boolean;
+}
+
+export type ContactMessageInputTopic = typeof ContactMessageInputTopic[keyof typeof ContactMessageInputTopic];
+
+
+export const ContactMessageInputTopic = {
+  general: 'general',
+  order: 'order',
+  privacy: 'privacy',
+  other: 'other',
+} as const;
+
+export interface ContactMessageInput {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  name: string;
+  /** @maxLength 254 */
+  email: string;
+  topic: ContactMessageInputTopic;
+  /**
+     * @minLength 10
+     * @maxLength 4000
+     */
+  message: string;
+  /**
+     * Hidden anti-spam field; leave empty.
+     * @maxLength 200
+     */
+  website?: string;
+}
+
+export interface ContactSubmissionResponse {
+  accepted: boolean;
+  reference: string;
+}
+
+export interface ContactMessage {
+  reference: string;
+  name: string;
+  email: string;
+  topic: string;
+  message: string;
+  createdAt: string;
 }
 
 export interface DashboardSummary {
@@ -105,4 +229,12 @@ export interface WebhookInput { [key: string]: unknown }
 export interface WebhookAccepted {
   accepted: boolean;
 }
+
+export type SearchCompaniesHouseCompaniesParams = {
+/**
+ * @minLength 2
+ * @maxLength 120
+ */
+q: string;
+};
 

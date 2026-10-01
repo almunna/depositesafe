@@ -20,10 +20,22 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  CompanyCheckInput,
+  CompanyCheckResult,
+  CompanySearchResponse,
+  ContactMessage,
+  ContactMessageInput,
+  ContactSubmissionResponse,
   DashboardSummary,
   Error,
   HealthStatus,
   Product,
+  ProviderWebhookResponse,
+  SearchCompaniesHouseCompaniesParams,
+  StripeCatalogSyncResponse,
+  StripeCheckoutInput,
+  StripeCheckoutResponse,
+  StripeWebhookEvent,
   Transaction,
   TransactionInput,
   User,
@@ -686,6 +698,420 @@ export function useGetTransaction<TData = Awaited<ReturnType<typeof getTransacti
 
 
 
+export const getSearchCompaniesHouseCompaniesUrl = (params: SearchCompaniesHouseCompaniesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/companies-house/search?${stringifiedParams}` : `/api/companies-house/search`
+}
+
+/**
+ * @summary Search Companies House companies
+ */
+export const searchCompaniesHouseCompanies = async (params: SearchCompaniesHouseCompaniesParams, options?: Parameters<typeof customFetch>[1]): Promise<CompanySearchResponse> => {
+
+  return customFetch<CompanySearchResponse>(getSearchCompaniesHouseCompaniesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getSearchCompaniesHouseCompaniesQueryKey = (params?: SearchCompaniesHouseCompaniesParams,) => {
+    return [
+    `/api/companies-house/search`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getSearchCompaniesHouseCompaniesQueryOptions = <TData = Awaited<ReturnType<typeof searchCompaniesHouseCompanies>>, TError = ErrorType<Error>>(params: SearchCompaniesHouseCompaniesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof searchCompaniesHouseCompanies>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSearchCompaniesHouseCompaniesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchCompaniesHouseCompanies>>> = ({ signal }) => searchCompaniesHouseCompanies(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof searchCompaniesHouseCompanies>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type SearchCompaniesHouseCompaniesQueryResult = NonNullable<Awaited<ReturnType<typeof searchCompaniesHouseCompanies>>>
+export type SearchCompaniesHouseCompaniesQueryError = ErrorType<Error>
+
+
+/**
+ * @summary Search Companies House companies
+ */
+
+export function useSearchCompaniesHouseCompanies<TData = Awaited<ReturnType<typeof searchCompaniesHouseCompanies>>, TError = ErrorType<Error>>(
+ params: SearchCompaniesHouseCompaniesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof searchCompaniesHouseCompanies>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getSearchCompaniesHouseCompaniesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRunCompaniesHouseCheckUrl = (reference: string,) => {
+
+
+
+
+  return `/api/transactions/${reference}/companies-house/check`
+}
+
+/**
+ * @summary Check a selected Companies House company for a transaction
+ */
+export const runCompaniesHouseCheck = async (reference: string,
+    companyCheckInput: CompanyCheckInput, options?: Parameters<typeof customFetch>[1]): Promise<CompanyCheckResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CompanyCheckResult>(getRunCompaniesHouseCheckUrl(reference),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(companyCheckInput)
+  }
+);}
+
+
+
+
+
+export const getRunCompaniesHouseCheckMutationKey = () => ['runCompaniesHouseCheck'] as const;
+
+export const getRunCompaniesHouseCheckMutationOptions = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runCompaniesHouseCheck>>, TError,RunCompaniesHouseCheckMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof runCompaniesHouseCheck>>, TError,RunCompaniesHouseCheckMutationVariables, TContext> => {
+
+const mutationKey = getRunCompaniesHouseCheckMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runCompaniesHouseCheck>>, RunCompaniesHouseCheckMutationVariables> = (props) => {
+          const {reference,data} = props ?? {};
+
+          return  runCompaniesHouseCheck(reference,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RunCompaniesHouseCheckMutationResult = NonNullable<Awaited<ReturnType<typeof runCompaniesHouseCheck>>>
+    export type RunCompaniesHouseCheckMutationBody = BodyType<CompanyCheckInput>
+    export type RunCompaniesHouseCheckMutationError = ErrorType<Error>
+    export type RunCompaniesHouseCheckMutationVariables = {reference: string;data: BodyType<CompanyCheckInput>}
+
+    /**
+ * @summary Check a selected Companies House company for a transaction
+ */
+export const useRunCompaniesHouseCheck = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runCompaniesHouseCheck>>, TError,RunCompaniesHouseCheckMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof runCompaniesHouseCheck>>,
+        TError,
+        RunCompaniesHouseCheckMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRunCompaniesHouseCheckMutationOptions(options));
+    }
+
+export const getGetCompaniesHouseResultUrl = (reference: string,) => {
+
+
+
+
+  return `/api/transactions/${reference}/companies-house/result`
+}
+
+/**
+ * @summary Get the Companies House result linked to a transaction
+ */
+export const getCompaniesHouseResult = async (reference: string, options?: Parameters<typeof customFetch>[1]): Promise<CompanyCheckResult> => {
+
+  return customFetch<CompanyCheckResult>(getGetCompaniesHouseResultUrl(reference),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCompaniesHouseResultQueryKey = (reference: string,) => {
+    return [
+    `/api/transactions/${reference}/companies-house/result`
+    ] as const;
+    }
+
+
+export const getGetCompaniesHouseResultQueryOptions = <TData = Awaited<ReturnType<typeof getCompaniesHouseResult>>, TError = ErrorType<Error>>(reference: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCompaniesHouseResult>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCompaniesHouseResultQueryKey(reference);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCompaniesHouseResult>>> = ({ signal }) => getCompaniesHouseResult(reference, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: reference !== null && reference !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCompaniesHouseResult>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCompaniesHouseResultQueryResult = NonNullable<Awaited<ReturnType<typeof getCompaniesHouseResult>>>
+export type GetCompaniesHouseResultQueryError = ErrorType<Error>
+
+
+/**
+ * @summary Get the Companies House result linked to a transaction
+ */
+
+export function useGetCompaniesHouseResult<TData = Awaited<ReturnType<typeof getCompaniesHouseResult>>, TError = ErrorType<Error>>(
+ reference: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCompaniesHouseResult>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCompaniesHouseResultQueryOptions(reference,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateStripeCheckoutSessionUrl = (reference: string,) => {
+
+
+
+
+  return `/api/transactions/${reference}/payments/checkout`
+}
+
+/**
+ * @summary Create a Stripe Checkout session for an existing transaction
+ */
+export const createStripeCheckoutSession = async (reference: string,
+    stripeCheckoutInput: StripeCheckoutInput, options?: Parameters<typeof customFetch>[1]): Promise<StripeCheckoutResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<StripeCheckoutResponse>(getCreateStripeCheckoutSessionUrl(reference),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(stripeCheckoutInput)
+  }
+);}
+
+
+
+
+
+export const getCreateStripeCheckoutSessionMutationKey = () => ['createStripeCheckoutSession'] as const;
+
+export const getCreateStripeCheckoutSessionMutationOptions = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createStripeCheckoutSession>>, TError,CreateStripeCheckoutSessionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createStripeCheckoutSession>>, TError,CreateStripeCheckoutSessionMutationVariables, TContext> => {
+
+const mutationKey = getCreateStripeCheckoutSessionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createStripeCheckoutSession>>, CreateStripeCheckoutSessionMutationVariables> = (props) => {
+          const {reference,data} = props ?? {};
+
+          return  createStripeCheckoutSession(reference,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateStripeCheckoutSessionMutationResult = NonNullable<Awaited<ReturnType<typeof createStripeCheckoutSession>>>
+    export type CreateStripeCheckoutSessionMutationBody = BodyType<StripeCheckoutInput>
+    export type CreateStripeCheckoutSessionMutationError = ErrorType<Error>
+    export type CreateStripeCheckoutSessionMutationVariables = {reference: string;data: BodyType<StripeCheckoutInput>}
+
+    /**
+ * @summary Create a Stripe Checkout session for an existing transaction
+ */
+export const useCreateStripeCheckoutSession = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createStripeCheckoutSession>>, TError,CreateStripeCheckoutSessionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createStripeCheckoutSession>>,
+        TError,
+        CreateStripeCheckoutSessionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateStripeCheckoutSessionMutationOptions(options));
+    }
+
+export const getSyncStripeCatalogUrl = () => {
+
+
+
+
+  return `/api/admin/providers/stripe/catalog-sync`
+}
+
+/**
+ * DepositSafe remains the catalogue source of truth; this idempotent setup action stores Stripe references on existing products.
+ * @summary Create or update Stripe products/prices from the DepositSafe catalogue
+ */
+export const syncStripeCatalog = async ( options?: Parameters<typeof customFetch>[1]): Promise<StripeCatalogSyncResponse> => {
+
+  return customFetch<StripeCatalogSyncResponse>(getSyncStripeCatalogUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getSyncStripeCatalogMutationKey = () => ['syncStripeCatalog'] as const;
+
+export const getSyncStripeCatalogMutationOptions = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof syncStripeCatalog>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof syncStripeCatalog>>, TError,void, TContext> => {
+
+const mutationKey = getSyncStripeCatalogMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof syncStripeCatalog>>, void> = () => {
+
+
+          return  syncStripeCatalog(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SyncStripeCatalogMutationResult = NonNullable<Awaited<ReturnType<typeof syncStripeCatalog>>>
+
+    export type SyncStripeCatalogMutationError = ErrorType<Error>
+
+
+    /**
+ * @summary Create or update Stripe products/prices from the DepositSafe catalogue
+ */
+export const useSyncStripeCatalog = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof syncStripeCatalog>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof syncStripeCatalog>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getSyncStripeCatalogMutationOptions(options));
+    }
+
 export const getListAdminTransactionsUrl = () => {
 
 
@@ -762,6 +1188,171 @@ export function useListAdminTransactions<TData = Awaited<ReturnType<typeof listA
 
 
 
+
+export const getListAdminContactMessagesUrl = () => {
+
+
+
+
+  return `/api/admin/contact-messages`
+}
+
+/**
+ * @summary List recent public contact form submissions
+ */
+export const listAdminContactMessages = async ( options?: Parameters<typeof customFetch>[1]): Promise<ContactMessage[]> => {
+
+  return customFetch<ContactMessage[]>(getListAdminContactMessagesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdminContactMessagesQueryKey = () => {
+    return [
+    `/api/admin/contact-messages`
+    ] as const;
+    }
+
+
+export const getListAdminContactMessagesQueryOptions = <TData = Awaited<ReturnType<typeof listAdminContactMessages>>, TError = ErrorType<Error>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminContactMessages>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdminContactMessagesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdminContactMessages>>> = ({ signal }) => listAdminContactMessages({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdminContactMessages>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAdminContactMessagesQueryResult = NonNullable<Awaited<ReturnType<typeof listAdminContactMessages>>>
+export type ListAdminContactMessagesQueryError = ErrorType<Error>
+
+
+/**
+ * @summary List recent public contact form submissions
+ */
+
+export function useListAdminContactMessages<TData = Awaited<ReturnType<typeof listAdminContactMessages>>, TError = ErrorType<Error>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminContactMessages>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAdminContactMessagesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSubmitContactMessageUrl = () => {
+
+
+
+
+  return `/api/contact-messages`
+}
+
+/**
+ * @summary Submit a public support enquiry
+ */
+export const submitContactMessage = async (contactMessageInput: ContactMessageInput, options?: Parameters<typeof customFetch>[1]): Promise<ContactSubmissionResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<ContactSubmissionResponse>(getSubmitContactMessageUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(contactMessageInput)
+  }
+);}
+
+
+
+
+
+export const getSubmitContactMessageMutationKey = () => ['submitContactMessage'] as const;
+
+export const getSubmitContactMessageMutationOptions = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitContactMessage>>, TError,SubmitContactMessageMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof submitContactMessage>>, TError,SubmitContactMessageMutationVariables, TContext> => {
+
+const mutationKey = getSubmitContactMessageMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof submitContactMessage>>, SubmitContactMessageMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  submitContactMessage(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SubmitContactMessageMutationResult = NonNullable<Awaited<ReturnType<typeof submitContactMessage>>>
+    export type SubmitContactMessageMutationBody = BodyType<ContactMessageInput>
+    export type SubmitContactMessageMutationError = ErrorType<Error>
+    export type SubmitContactMessageMutationVariables = {data: BodyType<ContactMessageInput>}
+
+    /**
+ * @summary Submit a public support enquiry
+ */
+export const useSubmitContactMessage = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitContactMessage>>, TError,SubmitContactMessageMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof submitContactMessage>>,
+        TError,
+        SubmitContactMessageMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSubmitContactMessageMutationOptions(options));
+    }
 
 export const getReceiveClerkWebhookUrl = () => {
 
@@ -850,5 +1441,94 @@ export const useReceiveClerkWebhook = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getReceiveClerkWebhookMutationOptions(options));
+    }
+
+export const getReceiveStripeWebhookUrl = () => {
+
+
+
+
+  return `/api/webhooks/stripe`
+}
+
+/**
+ * Stripe-Signature is verified against the raw request bytes and STRIPE_WEBHOOK_SECRET before the event is processed.
+ * @summary Receive a signed Stripe event
+ */
+export const receiveStripeWebhook = async (stripeWebhookEvent: StripeWebhookEvent, options?: Parameters<typeof customFetch>[1]): Promise<ProviderWebhookResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<ProviderWebhookResponse>(getReceiveStripeWebhookUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(stripeWebhookEvent)
+  }
+);}
+
+
+
+
+
+export const getReceiveStripeWebhookMutationKey = () => ['receiveStripeWebhook'] as const;
+
+export const getReceiveStripeWebhookMutationOptions = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof receiveStripeWebhook>>, TError,ReceiveStripeWebhookMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof receiveStripeWebhook>>, TError,ReceiveStripeWebhookMutationVariables, TContext> => {
+
+const mutationKey = getReceiveStripeWebhookMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof receiveStripeWebhook>>, ReceiveStripeWebhookMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  receiveStripeWebhook(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReceiveStripeWebhookMutationResult = NonNullable<Awaited<ReturnType<typeof receiveStripeWebhook>>>
+    export type ReceiveStripeWebhookMutationBody = BodyType<StripeWebhookEvent>
+    export type ReceiveStripeWebhookMutationError = ErrorType<Error>
+    export type ReceiveStripeWebhookMutationVariables = {data: BodyType<StripeWebhookEvent>}
+
+    /**
+ * @summary Receive a signed Stripe event
+ */
+export const useReceiveStripeWebhook = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof receiveStripeWebhook>>, TError,ReceiveStripeWebhookMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof receiveStripeWebhook>>,
+        TError,
+        ReceiveStripeWebhookMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReceiveStripeWebhookMutationOptions(options));
     }
 

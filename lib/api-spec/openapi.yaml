@@ -18,6 +18,8 @@ tags:
     description: Guest and authenticated transaction operations
   - name: admin
     description: Protected administration operations
+  - name: contact
+    description: Public support contact and protected message review
   - name: webhooks
     description: Provider and authentication webhook structure
 paths:
@@ -329,6 +331,58 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /admin/contact-messages:
+    get:
+      operationId: listAdminContactMessages
+      tags: [admin]
+      summary: List recent public contact form submissions
+      security:
+        - clerkSession: []
+      responses:
+        "200":
+          description: Recent contact messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ContactMessage"
+        "403":
+          description: Administrator access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /contact-messages:
+    post:
+      operationId: submitContactMessage
+      tags: [contact]
+      summary: Submit a public support enquiry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactMessageInput"
+      responses:
+        "201":
+          description: Enquiry accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactSubmissionResponse"
+        "400":
+          description: Invalid enquiry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Enquiry storage is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /webhooks/clerk:
     post:
       operationId: receiveClerkWebhook
@@ -628,6 +682,54 @@ components:
         stale:
           type: boolean
       required: [accepted, duplicate, stale]
+    ContactMessageInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        topic:
+          type: string
+          enum: [general, order, privacy, other]
+        message:
+          type: string
+          minLength: 10
+          maxLength: 4000
+        website:
+          type: string
+          maxLength: 200
+          description: Hidden anti-spam field; leave empty.
+      required: [name, email, topic, message]
+    ContactSubmissionResponse:
+      type: object
+      properties:
+        accepted:
+          type: boolean
+        reference:
+          type: string
+      required: [accepted, reference]
+    ContactMessage:
+      type: object
+      properties:
+        reference:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        topic:
+          type: string
+        message:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [reference, name, email, topic, message, createdAt]
     TransactionStatus:
       type: string
       enum:

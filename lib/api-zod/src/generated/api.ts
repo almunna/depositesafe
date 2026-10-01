@@ -90,7 +90,8 @@ export const GetDashboardSummaryResponse = zod.object({
 }))),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
-  "isGuest": zod.boolean()
+  "isGuest": zod.boolean(),
+  "guestCapability": zod.string().nullish()
 }))
 })
 
@@ -120,7 +121,8 @@ export const ListTransactionsResponseItem = zod.object({
 }))),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
-  "isGuest": zod.boolean()
+  "isGuest": zod.boolean(),
+  "guestCapability": zod.string().nullish()
 })
 export const ListTransactionsResponse = zod.array(ListTransactionsResponseItem)
 
@@ -165,7 +167,8 @@ export const CreateTransactionResponse = zod.object({
 }))),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
-  "isGuest": zod.boolean()
+  "isGuest": zod.boolean(),
+  "guestCapability": zod.string().nullish()
 })
 
 
@@ -198,7 +201,113 @@ export const GetTransactionResponse = zod.object({
 }))),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
-  "isGuest": zod.boolean()
+  "isGuest": zod.boolean(),
+  "guestCapability": zod.string().nullish()
+})
+
+
+/**
+ * @summary Search Companies House companies
+ */
+export const searchCompaniesHouseCompaniesQueryQMin = 2;
+export const searchCompaniesHouseCompaniesQueryQMax = 120;
+
+
+
+export const SearchCompaniesHouseCompaniesQueryParams = zod.object({
+  "q": zod.coerce.string().min(searchCompaniesHouseCompaniesQueryQMin).max(searchCompaniesHouseCompaniesQueryQMax)
+})
+
+export const SearchCompaniesHouseCompaniesResponse = zod.object({
+  "items": zod.array(zod.object({
+  "companyNumber": zod.string(),
+  "name": zod.string(),
+  "status": zod.string(),
+  "dateOfCreation": zod.string().nullish(),
+  "addressSnippet": zod.string().nullish()
+}))
+})
+
+
+/**
+ * @summary Check a selected Companies House company for a transaction
+ */
+export const RunCompaniesHouseCheckParams = zod.object({
+  "reference": zod.coerce.string()
+})
+
+export const runCompaniesHouseCheckBodyCompanyNumberMax = 8;
+
+
+
+export const RunCompaniesHouseCheckBody = zod.object({
+  "companyNumber": zod.string().min(1).max(runCompaniesHouseCheckBodyCompanyNumberMax)
+})
+
+export const RunCompaniesHouseCheckResponse = zod.object({
+  "verificationId": zod.string(),
+  "transactionReference": zod.string(),
+  "companyNumber": zod.string(),
+  "companyName": zod.string(),
+  "companyStatus": zod.string(),
+  "outcome": zod.string(),
+  "transactionStatus": zod.enum(['STARTED', 'PAYMENT_PENDING', 'PAID', 'VERIFICATION_PENDING', 'VERIFICATION_IN_PROGRESS', 'VERIFICATION_COMPLETED', 'RESULT_GENERATED', 'DELIVERED', 'PAYMENT_FAILED', 'AWAITING_PARTICIPANT', 'EXPIRED', 'VERIFICATION_FAILED', 'MANUAL_ATTENTION']),
+  "checkedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Get the Companies House result linked to a transaction
+ */
+export const GetCompaniesHouseResultParams = zod.object({
+  "reference": zod.coerce.string()
+})
+
+export const GetCompaniesHouseResultResponse = zod.object({
+  "verificationId": zod.string(),
+  "transactionReference": zod.string(),
+  "companyNumber": zod.string(),
+  "companyName": zod.string(),
+  "companyStatus": zod.string(),
+  "outcome": zod.string(),
+  "transactionStatus": zod.enum(['STARTED', 'PAYMENT_PENDING', 'PAID', 'VERIFICATION_PENDING', 'VERIFICATION_IN_PROGRESS', 'VERIFICATION_COMPLETED', 'RESULT_GENERATED', 'DELIVERED', 'PAYMENT_FAILED', 'AWAITING_PARTICIPANT', 'EXPIRED', 'VERIFICATION_FAILED', 'MANUAL_ATTENTION']),
+  "checkedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Create a Stripe Checkout session for an existing transaction
+ */
+export const CreateStripeCheckoutSessionParams = zod.object({
+  "reference": zod.coerce.string()
+})
+
+export const createStripeCheckoutSessionBodyIdempotencyKeyMin = 8;
+export const createStripeCheckoutSessionBodyIdempotencyKeyMax = 128;
+
+
+
+export const CreateStripeCheckoutSessionBody = zod.object({
+  "idempotencyKey": zod.string().min(createStripeCheckoutSessionBodyIdempotencyKeyMin).max(createStripeCheckoutSessionBodyIdempotencyKeyMax),
+  "successUrl": zod.string().url(),
+  "cancelUrl": zod.string().url()
+})
+
+export const CreateStripeCheckoutSessionResponse = zod.object({
+  "checkoutSessionReference": zod.string(),
+  "checkoutUrl": zod.string().url(),
+  "paymentStatus": zod.enum(['pending', 'paid', 'failed']),
+  "amountPence": zod.number().int()
+})
+
+
+/**
+ * DepositSafe remains the catalogue source of truth; this idempotent setup action stores Stripe references on existing products.
+ * @summary Create or update Stripe products/prices from the DepositSafe catalogue
+ */
+export const SyncStripeCatalogResponse = zod.object({
+  "productsSynced": zod.number().int(),
+  "pricesSynced": zod.number().int()
 })
 
 
@@ -227,9 +336,52 @@ export const ListAdminTransactionsResponseItem = zod.object({
 }))),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
-  "isGuest": zod.boolean()
+  "isGuest": zod.boolean(),
+  "guestCapability": zod.string().nullish()
 })
 export const ListAdminTransactionsResponse = zod.array(ListAdminTransactionsResponseItem)
+
+
+/**
+ * @summary List recent public contact form submissions
+ */
+export const ListAdminContactMessagesResponseItem = zod.object({
+  "reference": zod.string(),
+  "name": zod.string(),
+  "email": zod.string(),
+  "topic": zod.string(),
+  "message": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+export const ListAdminContactMessagesResponse = zod.array(ListAdminContactMessagesResponseItem)
+
+
+/**
+ * @summary Submit a public support enquiry
+ */
+export const submitContactMessageBodyNameMax = 120;
+
+export const submitContactMessageBodyEmailMax = 254;
+
+export const submitContactMessageBodyMessageMin = 10;
+export const submitContactMessageBodyMessageMax = 4000;
+
+export const submitContactMessageBodyWebsiteMax = 200;
+
+
+
+export const SubmitContactMessageBody = zod.object({
+  "name": zod.string().min(1).max(submitContactMessageBodyNameMax),
+  "email": zod.string().email().max(submitContactMessageBodyEmailMax),
+  "topic": zod.enum(['general', 'order', 'privacy', 'other']),
+  "message": zod.string().min(submitContactMessageBodyMessageMin).max(submitContactMessageBodyMessageMax),
+  "website": zod.string().max(submitContactMessageBodyWebsiteMax).optional().describe('Hidden anti-spam field; leave empty.')
+})
+
+export const SubmitContactMessageResponse = zod.object({
+  "accepted": zod.boolean(),
+  "reference": zod.string()
+})
 
 
 /**
@@ -240,6 +392,28 @@ export const ReceiveClerkWebhookBody = zod.record(zod.string(), zod.unknown())
 
 export const ReceiveClerkWebhookResponse = zod.object({
   "accepted": zod.boolean()
+})
+
+
+/**
+ * Stripe-Signature is verified against the raw request bytes and STRIPE_WEBHOOK_SECRET before the event is processed.
+ * @summary Receive a signed Stripe event
+ */
+export const ReceiveStripeWebhookHeader = zod.object({
+  "Stripe-Signature": zod.string()
+})
+
+export const ReceiveStripeWebhookBody = zod.object({
+  "id": zod.string(),
+  "type": zod.string(),
+  "created": zod.number().int(),
+  "data": zod.record(zod.string(), zod.unknown())
+})
+
+export const ReceiveStripeWebhookResponse = zod.object({
+  "accepted": zod.boolean(),
+  "duplicate": zod.boolean(),
+  "stale": zod.boolean()
 })
 
 

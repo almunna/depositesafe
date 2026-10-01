@@ -18,4 +18,5 @@ export interface Transaction {
   createdAt: Date;
   updatedAt: Date;
   isGuest: boolean;
+  guestCapability?: string | null;
 }
