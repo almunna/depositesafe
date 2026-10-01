@@ -9,6 +9,8 @@ export const productConfigurationsTable = pgTable("product_configurations", {
   pricePence: integer("price_pence").notNull(),
   provider: text("provider").notNull(),
   participantMode: text("participant_mode").notNull().default("single"),
+  stripeProductId: text("stripe_product_id"),
+  stripePriceId: text("stripe_price_id"),
   active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),

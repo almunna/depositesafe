@@ -216,7 +216,12 @@ export function TransactionForm({ product, products = [], compact = false }: { p
       email: email.trim(),
       ...(selectedProduct.participantMode === 'multiple' ? { participants: [{ name: participantName.trim(), email: participantEmail.trim(), role: 'participant' }, { name: secondParticipantName.trim(), email: secondParticipantEmail.trim(), role: 'participant' }] } : {}),
     };
-    createTransaction.mutate({ data: input }, { onSuccess: (transaction) => setLocation(`/transactions/${transaction.reference}`), onError: () => setFormError('We could not start that transaction. Please try again.') });
+    createTransaction.mutate({ data: input }, { onSuccess: (transaction) => {
+      if (transaction.guestCapability && typeof window !== 'undefined') {
+        window.sessionStorage.setItem(`depositsafe:guest-capability:${transaction.reference}`, transaction.guestCapability);
+      }
+      setLocation(`/transactions/${transaction.reference}`);
+    }, onError: () => setFormError('We could not start that transaction. Please try again.') });
   };
   return (
     <form onSubmit={submit} className={`space-y-4 ${compact ? '' : 'mt-6'}`} data-testid="form-create-transaction">

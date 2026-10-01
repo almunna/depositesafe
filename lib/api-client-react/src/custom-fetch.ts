@@ -91,6 +91,25 @@ function mergeHeaders(...sources: Array<HeadersInit | undefined>): Headers {
   return headers;
 }
 
+function attachGuestCapability(headers: Headers, input: RequestInfo | URL): void {
+  if (headers.has("x-guest-capability") || typeof window === "undefined") return;
+  let pathname: string;
+  try {
+    pathname = new URL(resolveUrl(input), window.location.origin).pathname;
+  } catch {
+    return;
+  }
+  const match = pathname.match(/\/transactions\/([^/]+)\/(?:payments|companies-house)(?:\/|$)/);
+  if (!match) return;
+  try {
+    const reference = decodeURIComponent(match[1]);
+    const token = window.sessionStorage.getItem(`depositsafe:guest-capability:${reference}`);
+    if (token) headers.set("x-guest-capability", token);
+  } catch {
+    // Storage can be unavailable in privacy-restricted browser contexts.
+  }
+}
+
 function getMediaType(headers: Headers): string | null {
   const value = headers.get("content-type");
   return value ? value.split(";", 1)[0].trim().toLowerCase() : null;
@@ -336,6 +355,7 @@ export async function customFetch<T = unknown>(
   }
 
   const headers = mergeHeaders(isRequest(input) ? input.headers : undefined, headersInit);
+  attachGuestCapability(headers, input);
 
   if (
     typeof init.body === "string" &&

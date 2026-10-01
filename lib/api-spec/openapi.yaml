@@ -173,6 +173,134 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /companies-house/search:
+    get:
+      operationId: searchCompaniesHouseCompanies
+      tags: [companies-house]
+      summary: Search Companies House companies
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 120
+      responses:
+        "200":
+          description: Matching public company records
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompanySearchResponse"
+        "503":
+          description: Companies House is not configured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /transactions/{reference}/companies-house/check:
+    post:
+      operationId: runCompaniesHouseCheck
+      tags: [companies-house]
+      summary: Check a selected Companies House company for a transaction
+      security:
+        - clerkSession: []
+        - guestCapability: []
+      parameters:
+        - $ref: "#/components/parameters/TransactionReference"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompanyCheckInput"
+      responses:
+        "200":
+          description: Stored Companies House result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompanyCheckResult"
+        "403":
+          description: Valid transaction access is required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /transactions/{reference}/companies-house/result:
+    get:
+      operationId: getCompaniesHouseResult
+      tags: [companies-house]
+      summary: Get the Companies House result linked to a transaction
+      security:
+        - clerkSession: []
+        - guestCapability: []
+      parameters:
+        - $ref: "#/components/parameters/TransactionReference"
+      responses:
+        "200":
+          description: Companies House result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompanyCheckResult"
+        "404":
+          description: No Companies House result exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /transactions/{reference}/payments/checkout:
+    post:
+      operationId: createStripeCheckoutSession
+      tags: [payments]
+      summary: Create a Stripe Checkout session for an existing transaction
+      security:
+        - clerkSession: []
+        - guestCapability: []
+      parameters:
+        - $ref: "#/components/parameters/TransactionReference"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StripeCheckoutInput"
+      responses:
+        "201":
+          description: Stripe Checkout session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StripeCheckoutResponse"
+        "409":
+          description: Transaction is not eligible for checkout
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/providers/stripe/catalog-sync:
+    post:
+      operationId: syncStripeCatalog
+      tags: [admin]
+      summary: Create or update Stripe products/prices from the DepositSafe catalogue
+      description: DepositSafe remains the catalogue source of truth; this idempotent setup action stores Stripe references on existing products.
+      security:
+        - clerkSession: []
+      responses:
+        "200":
+          description: Stripe catalogue synchronization summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StripeCatalogSyncResponse"
+        "403":
+          description: Administrator access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /admin/transactions:
     get:
       operationId: listAdminTransactions
@@ -220,12 +348,54 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/WebhookAccepted"
+  /webhooks/stripe:
+    post:
+      operationId: receiveStripeWebhook
+      tags: [webhooks]
+      summary: Receive a signed Stripe event
+      description: Stripe-Signature is verified against the raw request bytes and STRIPE_WEBHOOK_SECRET before the event is processed.
+      parameters:
+        - name: Stripe-Signature
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StripeWebhookEvent"
+      responses:
+        "200":
+          description: Event accepted or already processed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderWebhookResponse"
+        "400":
+          description: Invalid signature or payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Webhook signing secret is not configured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 components:
   securitySchemes:
     clerkSession:
       type: http
       scheme: bearer
       description: Clerk session cookie is used by the browser; bearer notation documents the protected contract.
+    guestCapability:
+      type: apiKey
+      in: header
+      name: X-Guest-Capability
+      description: One-time issued random capability for a guest transaction; stored only as a hash server-side.
   parameters:
     ProductSlug:
       name: slug
@@ -341,7 +511,123 @@ components:
           format: date-time
         isGuest:
           type: boolean
+        guestCapability:
+          type: string
+          nullable: true
       required: [reference, product, email, status, participants, createdAt, updatedAt, isGuest]
+    CompanySearchResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompanySearchResult"
+      required: [items]
+    CompanySearchResult:
+      type: object
+      properties:
+        companyNumber:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+        dateOfCreation:
+          type: string
+          nullable: true
+        addressSnippet:
+          type: string
+          nullable: true
+      required: [companyNumber, name, status]
+    CompanyCheckInput:
+      type: object
+      properties:
+        companyNumber:
+          type: string
+          minLength: 1
+          maxLength: 8
+      required: [companyNumber]
+    CompanyCheckResult:
+      type: object
+      properties:
+        verificationId:
+          type: string
+        transactionReference:
+          type: string
+        companyNumber:
+          type: string
+        companyName:
+          type: string
+        companyStatus:
+          type: string
+        outcome:
+          type: string
+        transactionStatus:
+          $ref: "#/components/schemas/TransactionStatus"
+        checkedAt:
+          type: string
+          format: date-time
+      required: [verificationId, transactionReference, companyNumber, companyName, companyStatus, outcome, transactionStatus, checkedAt]
+    StripeCheckoutInput:
+      type: object
+      properties:
+        idempotencyKey:
+          type: string
+          minLength: 8
+          maxLength: 128
+        successUrl:
+          type: string
+          format: uri
+        cancelUrl:
+          type: string
+          format: uri
+      required: [idempotencyKey, successUrl, cancelUrl]
+    StripeCheckoutResponse:
+      type: object
+      properties:
+        checkoutSessionReference:
+          type: string
+        checkoutUrl:
+          type: string
+          format: uri
+        paymentStatus:
+          type: string
+          enum: [pending, paid, failed]
+        amountPence:
+          type: integer
+      required: [checkoutSessionReference, checkoutUrl, paymentStatus, amountPence]
+    StripeCatalogSyncResponse:
+      type: object
+      properties:
+        productsSynced:
+          type: integer
+        pricesSynced:
+          type: integer
+      required: [productsSynced, pricesSynced]
+    StripeWebhookEvent:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        created:
+          type: integer
+        data:
+          type: object
+          additionalProperties: true
+      required: [id, type, created, data]
+      additionalProperties: true
+    ProviderWebhookResponse:
+      type: object
+      properties:
+        accepted:
+          type: boolean
+        duplicate:
+          type: boolean
+        stale:
+          type: boolean
+      required: [accepted, duplicate, stale]
     TransactionStatus:
       type: string
       enum:

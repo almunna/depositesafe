@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
 import { and, desc, eq } from "drizzle-orm";
+import { createHash, randomBytes } from "node:crypto";
 import { CreateTransactionBody, GetTransactionParams, GetTransactionResponse, ListTransactionsResponse } from "@workspace/api-zod";
 import {
   db,
@@ -19,7 +20,7 @@ import {
 const router: IRouter = Router();
 
 function makeReference(): string {
-  const suffix = Math.random().toString(36).slice(2, 8).toUpperCase();
+  const suffix = randomBytes(5).toString("hex").toUpperCase();
   return `DS-${new Date().getFullYear()}-${suffix}`;
 }
 
@@ -56,27 +57,39 @@ router.post("/transactions", async (req, res): Promise<void> => {
 
   const clerkUserId = optionalUserId(req);
   const localUser = clerkUserId ? await ensureLocalUser(clerkUserId, parsed.data.email) : undefined;
-  const [transaction] = await db
-    .insert(transactionsTable)
-    .values({
-      reference: makeReference(),
-      userId: localUser?.id,
-      productId: product.id,
-      guestEmail: parsed.data.email,
-      status: "STARTED",
-    })
-    .returning();
-  await db.insert(participantsTable).values(
-    inputParticipants.map((participant) => ({
-      transactionId: transaction.id,
-      name: participant.name,
-      email: participant.email,
-      role: participant.role,
-    })),
-  );
+  const guestCapability = localUser ? undefined : randomBytes(32).toString("base64url");
+  const transaction = await db.transaction(async (tx) => {
+    const [created] = await tx
+      .insert(transactionsTable)
+      .values({
+        reference: makeReference(),
+        guestCapabilityHash: guestCapability
+          ? createHash("sha256").update(guestCapability).digest("hex")
+          : null,
+        userId: localUser?.id,
+        productId: product.id,
+        guestEmail: parsed.data.email,
+        status: "STARTED",
+      })
+      .returning();
+    await tx.insert(participantsTable).values(
+      inputParticipants.map((participant) => ({
+        transactionId: created.id,
+        name: participant.name,
+        email: participant.email,
+        role: participant.role,
+      })),
+    );
+    return created;
+  });
 
   const [result] = await serializeTransactions([transaction]);
-  res.status(201).json(GetTransactionResponse.parse(result));
+  res.status(201).json(
+    GetTransactionResponse.parse({
+      ...result,
+      ...(guestCapability ? { guestCapability } : {}),
+    }),
+  );
 });
 
 router.get("/transactions/:reference", async (req, res): Promise<void> => {

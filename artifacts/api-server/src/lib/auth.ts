@@ -1,9 +1,43 @@
 import { getAuth } from "@clerk/express";
 import type { NextFunction, Request, RequestHandler, Response } from "express";
-import { db, userEmailsTable, usersTable } from "@workspace/db";
+import { createHash, timingSafeEqual } from "node:crypto";
+import { db, transactionsTable, userEmailsTable, usersTable, type Transaction } from "@workspace/db";
 import { eq } from "drizzle-orm";
 
 export type AuthenticatedRequest = Request & { userId: string };
+
+export async function authorizeTransactionAccess(
+  req: Request,
+  res: Response,
+  reference: string,
+): Promise<Transaction | undefined> {
+  const [transaction] = await db
+    .select()
+    .from(transactionsTable)
+    .where(eq(transactionsTable.reference, reference));
+  if (!transaction) {
+    res.status(404).json({ error: "Transaction not found" });
+    return undefined;
+  }
+
+  const clerkUserId = optionalUserId(req);
+  if (clerkUserId) {
+    const localUser = await ensureLocalUser(clerkUserId);
+    if (transaction.userId === localUser.id) return transaction;
+  }
+
+  const capability = req.header("x-guest-capability");
+  if (capability && transaction.guestCapabilityHash) {
+    const supplied = createHash("sha256").update(capability).digest();
+    const expected = Buffer.from(transaction.guestCapabilityHash, "hex");
+    if (supplied.length === expected.length && timingSafeEqual(supplied, expected)) {
+      return transaction;
+    }
+  }
+
+  res.status(403).json({ error: "Valid transaction access is required" });
+  return undefined;
+}
 
 export function optionalUserId(req: Request): string | undefined {
   return getAuth(req).userId ?? undefined;
