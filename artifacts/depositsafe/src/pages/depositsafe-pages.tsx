@@ -31,6 +31,7 @@ import {
 } from '@/components/depositsafe';
 import { PaymentPanel, type PaymentReturnState } from '@/components/payment-panel';
 import { CompanyCheckPanel } from '@/components/company-check-panel';
+import { CompanyCheckProgress } from '@/components/company-check-progress';
 import { PublicLayout, usePageMeta } from '@/components/public/public-layout';
 import { getProductCopy } from '@/lib/product-copy';
 
@@ -40,14 +41,15 @@ export function ProductDetailPage() {
   const { slug = '' } = useParams<{ slug: string }>();
   const product = useGetProduct(slug, { query: { queryKey: getGetProductQueryKey(slug), enabled: Boolean(slug), retry: false } });
   const copy = getProductCopy(slug);
+  const isCompanyCheck = slug === 'company-check';
   usePageMeta(`${product.data?.name ?? 'Verification checks'} | DepositSafe`, copy?.summary ?? 'Explore DepositSafe checks before you commit or send money.');
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [slug]);
-  if (product.isLoading) return <PublicProductFrame><SkeletonRows count={3} /></PublicProductFrame>;
-  if (product.isError || !product.data) return <PublicProductFrame><QueryError message="This DepositSafe check could not be found." onRetry={() => void product.refetch()} /><Link href="/" className="focus-ring mt-5 inline-flex items-center gap-2 font-bold text-primary"><ArrowLeft className="h-4 w-4" /> Browse DepositSafe checks</Link></PublicProductFrame>;
+  if (product.isLoading) return <PublicProductFrame companyCheck={isCompanyCheck}><SkeletonRows count={3} /></PublicProductFrame>;
+  if (product.isError || !product.data) return <PublicProductFrame companyCheck={isCompanyCheck}><QueryError message="This DepositSafe check could not be found." onRetry={() => void product.refetch()} /><Link href="/" className="focus-ring mt-5 inline-flex items-center gap-2 font-bold text-primary"><ArrowLeft className="h-4 w-4" /> Browse DepositSafe checks</Link></PublicProductFrame>;
   return (
-    <PublicProductFrame>
+    <PublicProductFrame companyCheck={isCompanyCheck}>
       <div className="grid gap-12 lg:grid-cols-[1fr_400px] lg:items-start">
         <div>
           <Link href="/" className="focus-ring inline-flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-foreground" data-testid="link-back-directory"><ArrowLeft className="h-4 w-4" /> Back to our checks</Link>
@@ -62,8 +64,7 @@ export function ProductDetailPage() {
           <div className="mt-8 rounded-2xl bg-secondary p-5">
             <h2 className="text-sm font-bold">Before you start</h2>
             {copy ? <p className="mt-2 text-sm leading-6 text-muted-foreground">{copy.beforeStart}</p> : null}
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">DepositSafe is pre-launch and check availability may vary. Starting a record does not mean a payment has been taken or that the check is complete. Ask <Link href="/help" className="font-bold text-primary underline">our support team</Link> about availability before starting.</p>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">Checks help inform your decision; they do not guarantee a person, payment or transaction is safe.</p>
+             {isCompanyCheck ? <p className="mt-3 text-sm leading-6 text-muted-foreground">Companies House information does not itself guarantee identity, legitimacy or creditworthiness.</p> : <><p className="mt-3 text-sm leading-6 text-muted-foreground">DepositSafe is pre-launch and check availability may vary. Starting a record does not mean a payment has been taken or that the check is complete. Ask <Link href="/help" className="font-bold text-primary underline">our support team</Link> about availability before starting.</p><p className="mt-3 text-sm leading-6 text-muted-foreground">Checks help inform your decision; they do not guarantee a person, payment or transaction is safe.</p></>}
           </div>
         </div>
         <div className="rounded-2xl border border-border bg-white p-6 shadow-lg lg:sticky lg:top-24">
@@ -78,8 +79,8 @@ export function ProductDetailPage() {
   );
 }
 
-function PublicProductFrame({ children }: { children: ReactNode }) {
-  return <PublicLayout><div className="mx-auto max-w-7xl px-5 py-14 lg:px-8 lg:py-20">{children}</div></PublicLayout>;
+function PublicProductFrame({ children, companyCheck = false }: { children: ReactNode; companyCheck?: boolean }) {
+  return <PublicLayout companyCheck={companyCheck}><div className="mx-auto max-w-7xl px-5 py-14 lg:px-8 lg:py-20">{children}</div></PublicLayout>;
 }
 
 function InfoTile({ icon, title }: { icon: ReactNode; title: string }) {
@@ -175,33 +176,21 @@ export function TransactionDetailPage() {
   if (transaction.isError || !transaction.data) return <AppShell active="transactions"><QueryError message="We could not load this check record." onRetry={() => void transaction.refetch()} /><p className="mt-4 text-sm text-muted-foreground">For an account check, <Link href="/sign-in" className="font-bold text-primary underline">sign in</Link>. For a guest check, use its original browser tab; the reference alone does not restore access. If you need help, <Link href="/help" className="font-bold text-primary underline">contact support</Link> and include your reference.</p></AppShell>;
   const item = transaction.data;
   const isCompanyCheck = item.product.slug === 'company-check';
-  const stageStatuses: readonly string[] = isCompanyCheck
-    ? ['STARTED', 'PAYMENT_PENDING', 'PAID', 'VERIFICATION_PENDING', 'VERIFICATION_IN_PROGRESS', 'VERIFICATION_FAILED', 'RESULT_GENERATED', 'DELIVERED']
-    : ['STARTED', 'PAYMENT_PENDING', 'PAID', 'VERIFICATION_IN_PROGRESS', 'VERIFICATION_COMPLETED', 'DELIVERED'];
+  const stageStatuses: readonly string[] = ['STARTED', 'PAYMENT_PENDING', 'PAID', 'VERIFICATION_IN_PROGRESS', 'VERIFICATION_COMPLETED', 'DELIVERED'];
   const currentIndex = Math.max(stageStatuses.indexOf(item.status), 0);
   const stageTitle = (status: string) => {
-    if (isCompanyCheck) {
-      if (status === 'STARTED') return 'Transaction started';
-      if (status === 'PAYMENT_PENDING') return 'Payment pending';
-      if (status === 'PAID') return 'Payment confirmed';
-      if (status === 'VERIFICATION_PENDING') return 'Company Check queued';
-      if (status === 'VERIFICATION_IN_PROGRESS') return 'Companies House check in progress';
-      if (status === 'VERIFICATION_FAILED') return 'Companies House check needs attention';
-      if (status === 'RESULT_GENERATED') return 'Companies House result saved';
-      return 'Result delivered';
-    }
     return status === 'STARTED' ? 'Transaction started' : status === 'PAYMENT_PENDING' ? 'Payment pending' : status === 'PAID' ? 'Payment confirmed' : status === 'VERIFICATION_IN_PROGRESS' ? 'Verification in progress' : status === 'VERIFICATION_COMPLETED' ? 'Verification completed' : 'Result delivered';
   };
   return (
-    <AppShell active="transactions" title="Transaction detail">
+    <AppShell active="transactions" title={isCompanyCheck ? 'Your Company Check' : 'Transaction detail'} companyCheck={isCompanyCheck}>
       <div className="animate-rise">
         <Link href="/dashboard" className="focus-ring inline-flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-foreground" data-testid="link-back-dashboard"><ArrowLeft className="h-3.5 w-3.5" /> Back to overview</Link>
         <div className="mt-8 flex flex-col justify-between gap-6 border-b border-border/80 pb-8 md:flex-row md:items-end">
            <div><p className="eyebrow text-primary">Your {item.product.name} record</p><h1 className="mt-3 max-w-2xl font-display text-4xl tracking-[-.035em] sm:text-5xl">{item.product.name}</h1><p className="mt-3 font-mono-safe text-xs tracking-wide text-muted-foreground">{item.reference}</p></div>
-          <StatusBadge status={item.status} />
+          {isCompanyCheck ? <span className="rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-bold text-primary">{['VERIFICATION_COMPLETED', 'RESULT_GENERATED', 'DELIVERED'].includes(item.status) ? 'Result ready' : ['VERIFICATION_FAILED', 'MANUAL_ATTENTION', 'PAYMENT_FAILED', 'EXPIRED'].includes(item.status) ? 'Needs attention' : item.status === 'PAID' ? 'Ready to check a company' : item.status === 'VERIFICATION_IN_PROGRESS' ? 'Checking company details' : item.status === 'VERIFICATION_PENDING' ? 'Check queued' : 'Awaiting payment'}</span> : <StatusBadge status={item.status} />}
         </div>
         <div className="mt-8 grid gap-8 lg:grid-cols-[1.15fr_.85fr]">
-          <section className="rounded-2xl border border-border bg-card p-5 sm:p-7">
+          {isCompanyCheck ? <CompanyCheckProgress status={item.status} /> : <section className="rounded-2xl border border-border bg-card p-5 sm:p-7">
             <div className="flex items-center justify-between"><div><p className="eyebrow text-primary">Status path</p><h2 className="mt-2 font-display text-3xl">Where things stand</h2></div><Clock3 className="h-5 w-5 text-muted-foreground" /></div>
             <div className="mt-8 space-y-0">
               {stageStatuses.map((status, index) => {
@@ -216,9 +205,7 @@ export function TransactionDetailPage() {
                       <p className={`text-sm font-bold ${reached ? 'text-foreground' : 'text-muted-foreground'}`}>{stageTitle(status)}</p>
                       <p className="mt-1 text-xs leading-5 text-muted-foreground">
                         {reached
-                          ? isCompanyCheck && status === 'RESULT_GENERATED'
-                            ? 'The selected company result has been saved to this transaction.'
-                            : 'This stage has been recorded on your transaction.'
+                           ? 'This stage has been recorded on your transaction.'
                           : 'This stage will update when the previous step is complete.'}
                       </p>
                     </div>
@@ -226,11 +213,11 @@ export function TransactionDetailPage() {
                 );
               })}
             </div>
-          </section>
+          </section>}
           <aside className="space-y-4">
             <PaymentPanel transaction={item} returnState={returnState} onRefresh={refreshTransaction} />
             <div className="rounded-2xl border border-border bg-card p-5 sm:p-6"><p className="eyebrow text-muted-foreground">Record details</p><dl className="mt-5 space-y-4 text-sm"><DetailLine label="Created" value={formatDateTime(item.createdAt)} /><DetailLine label="Last updated" value={formatDateTime(item.updatedAt)} /><DetailLine label="Contact email" value={item.email} /><DetailLine label="Access" value={item.isGuest ? 'Guest reference' : 'Account workspace'} /></dl></div>
-            <div className="rounded-2xl border border-dashed border-border bg-muted/35 p-5"><p className="eyebrow text-muted-foreground">Participants</p>{item.participants.length ? <div className="mt-4 space-y-3">{item.participants.map((participant) => <div key={participant.id} className="flex items-center gap-3"><span className="grid h-8 w-8 place-items-center rounded-full bg-accent/35 text-foreground"><UserRound className="h-3.5 w-3.5" /></span><div><p className="text-sm font-bold">{participant.name}</p><p className="text-xs text-muted-foreground">{participant.email}</p></div></div>)}</div> : <p className="mt-3 text-sm text-muted-foreground">No additional participants recorded.</p>}</div>
+            {!isCompanyCheck ? <div className="rounded-2xl border border-dashed border-border bg-muted/35 p-5"><p className="eyebrow text-muted-foreground">Participants</p>{item.participants.length ? <div className="mt-4 space-y-3">{item.participants.map((participant) => <div key={participant.id} className="flex items-center gap-3"><span className="grid h-8 w-8 place-items-center rounded-full bg-accent/35 text-foreground"><UserRound className="h-3.5 w-3.5" /></span><div><p className="text-sm font-bold">{participant.name}</p><p className="text-xs text-muted-foreground">{participant.email}</p></div></div>)}</div> : <p className="mt-3 text-sm text-muted-foreground">No additional participants recorded.</p>}</div> : null}
           </aside>
         </div>
         {isCompanyCheck ? <div className="mt-8"><CompanyCheckPanel reference={item.reference} status={item.status} onTransactionRefresh={refreshTransaction} /></div> : null}

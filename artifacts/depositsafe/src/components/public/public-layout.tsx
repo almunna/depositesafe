@@ -107,13 +107,13 @@ function PublicHeader() {
   );
 }
 
-export function PublicFooter() {
+export function PublicFooter({ companyCheck = false }: { companyCheck?: boolean }) {
   return (
     <footer className="bg-[hsl(var(--ds-navy))] text-white">
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-[1.4fr_1fr_1fr] lg:px-8">
         <div>
           <PublicLogo light />
-          <p className="mt-5 max-w-sm text-sm leading-6 text-white/65">DepositSafe is a pre-launch service. Checks, availability and providers may change as we open up.</p>
+          <p className="mt-5 max-w-sm text-sm leading-6 text-white/65">{companyCheck ? 'Know more about the business you’re dealing with. Your Company Check, clearly presented and saved with DepositSafe.' : 'DepositSafe is a pre-launch service. Checks, availability and providers may change as we open up.'}</p>
         </div>
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-white/50">Service</p>
@@ -139,13 +139,13 @@ export function PublicFooter() {
   );
 }
 
-export function PublicLayout({ children }: { children: ReactNode }) {
+export function PublicLayout({ children, companyCheck = false }: { children: ReactNode; companyCheck?: boolean }) {
   return (
     <div className="ds-public min-h-[100dvh]">
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2">Skip to content</a>
       <PublicHeader />
       <main id="main">{children}</main>
-      <PublicFooter />
+      <PublicFooter companyCheck={companyCheck} />
     </div>
   );
 }

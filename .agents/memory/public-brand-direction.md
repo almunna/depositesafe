@@ -26,3 +26,9 @@ Product reference screenshots may contain outdated prices. Explicit locked V1 pr
 **Why:** The user explicitly locked the seven current prices and warned not to copy older amounts visible in design references.
 
 **How to apply:** Treat references as visual guidance, not pricing authority. Keep public pricing and the actual transaction configuration consistent; never infer a price change from a screenshot.
+
+Company Check is a DepositSafe-owned customer journey, not a Credas journey. The user described it as “this is all our journey now. It's not Credas.”
+
+**Why:** Company Check presentation needs DepositSafe copy and branding; Credas handover work must not imply that Credas supplies the Companies House check.
+
+**How to apply:** Keep Company Check UX polish scoped to that product. Preserve the working £4.99 payment and register-check behavior, and do not use this polish as a reason to alter Credas journeys or other products.

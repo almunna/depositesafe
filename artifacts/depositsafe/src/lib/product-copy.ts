@@ -33,9 +33,9 @@ const productCopy: Record<string, ProductCopy> = {
     beforeStart: 'This start form records your contact email, not a property address. Confirm the property and the available coverage before relying on ownership information. An ownership check does not verify the identity or authority of someone contacting you.',
   },
   'company-check': {
-    summary: 'Look up a UK company and see how it appears on the public register.',
-    features: ['UK company information', 'Public register details'],
-    beforeStart: 'Check that the registered company name and number match the business you intend to deal with. Public register information does not guarantee that a company, payment or transaction is safe.',
+    summary: 'Know more about the business you’re dealing with. Find a UK company and review its Companies House details in one clear, saved Company Check.',
+    features: ['Company status, address and filing details', 'Your result saved with DepositSafe'],
+    beforeStart: 'Pay securely, then search by company name or exact company number. Confirm the business you want to check before running your Company Check.',
   },
   'right-to-rent': {
     summary: 'A Right to Rent check for landlords and letting agents checking a prospective tenant for a property in England.',

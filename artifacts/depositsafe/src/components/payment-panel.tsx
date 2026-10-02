@@ -74,6 +74,7 @@ export function PaymentPanel({
   const [refreshError, setRefreshError] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const paid = isConfirmedPaid(transaction.status);
+  const isCompanyCheck = transaction.product.slug === 'company-check';
   const canResume = ['STARTED', 'PAYMENT_PENDING', 'PAYMENT_FAILED'].includes(transaction.status);
 
   useEffect(() => {
@@ -142,7 +143,7 @@ export function PaymentPanel({
           {paid ? (
             <>
               <h2 className="mt-2 text-base font-extrabold">Payment confirmed</h2>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">DepositSafe has recorded payment for this transaction.</p>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">{isCompanyCheck ? ['VERIFICATION_COMPLETED', 'RESULT_GENERATED', 'DELIVERED'].includes(transaction.status) ? 'Your £4.99 payment is confirmed. Your saved Company Check is ready to review below.' : 'Your £4.99 payment is confirmed. Continue with your Company Check below.' : 'DepositSafe has recorded payment for this transaction.'}</p>
             </>
           ) : returnState === 'success' ? (
             <>
@@ -154,18 +155,18 @@ export function PaymentPanel({
                   ? 'The transaction has not been marked paid. You can try checkout again if this record is still active.'
                   : transaction.status === 'EXPIRED'
                     ? 'This transaction has expired and cannot accept another checkout.'
-                    : 'Returning from checkout is not proof of payment. We are checking for the payment confirmation from Stripe.'}
+                     : isCompanyCheck ? 'We’re waiting for your secure payment confirmation. This page will update automatically.' : 'Returning from checkout is not proof of payment. We are checking for the payment confirmation from Stripe.'}
               </p>
             </>
           ) : returnState === 'cancel' ? (
             <>
               <h2 className="mt-2 text-base font-extrabold">Checkout incomplete</h2>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">DepositSafe has not confirmed a payment. Leaving checkout does not mark this transaction as paid; if you completed payment before returning, this record will update after confirmation.</p>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">{isCompanyCheck ? 'Your check is ready to continue whenever you are. If you’ve already paid, your payment confirmation will appear here shortly.' : 'DepositSafe has not confirmed a payment. Leaving checkout does not mark this transaction as paid; if you completed payment before returning, this record will update after confirmation.'}</p>
             </>
           ) : (
             <>
               <h2 className="mt-2 text-base font-extrabold">Complete payment to continue</h2>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">Your transaction reference is saved. Continue to Stripe’s secure hosted checkout when you are ready.</p>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">{isCompanyCheck ? 'Your Company Check reference is saved. Pay £4.99 securely to choose and check a company.' : 'Your transaction reference is saved. Continue to Stripe’s secure hosted checkout when you are ready.'}</p>
             </>
           )}
         </div>

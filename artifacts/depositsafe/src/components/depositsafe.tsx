@@ -132,7 +132,7 @@ export function PublicHeader() {
   );
 }
 
-export function AppShell({ children, active = 'dashboard', title }: { children: React.ReactNode; active?: 'dashboard' | 'transactions' | 'admin'; title?: string }) {
+export function AppShell({ children, active = 'dashboard', title, companyCheck = false }: { children: React.ReactNode; active?: 'dashboard' | 'transactions' | 'admin'; title?: string; companyCheck?: boolean }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [location] = useLocation();
   const currentUser = useGetCurrentUser({ query: { queryKey: getGetCurrentUserQueryKey(), staleTime: 60000, retry: false } });
@@ -140,7 +140,7 @@ export function AppShell({ children, active = 'dashboard', title }: { children: 
   const userLabel = currentUser.data?.displayName ?? 'Customer account';
   const navItems = [
     { id: 'dashboard', label: 'Overview', href: '/dashboard' },
-    { id: 'transactions', label: 'Transactions', href: '/dashboard#transactions' },
+    { id: 'transactions', label: companyCheck ? 'Your checks' : 'Transactions', href: '/dashboard#transactions' },
   ];
   if (location.startsWith('/admin')) navItems.push({ id: 'admin', label: 'Admin oversight', href: '/admin' });
   return (
@@ -148,14 +148,14 @@ export function AppShell({ children, active = 'dashboard', title }: { children: 
       <aside className={`${mobileOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-40 flex w-[278px] flex-col bg-sidebar px-5 py-6 text-sidebar-foreground transition-transform duration-300 md:relative md:translate-x-0`} data-testid="sidebar">
         <BrandMark inverse />
         <div className="mt-12">
-          <p className="eyebrow px-3 text-sidebar-foreground/50">Workspace</p>
+          <p className="eyebrow px-3 text-sidebar-foreground/50">{companyCheck ? 'Your DepositSafe' : 'Workspace'}</p>
           <nav className="mt-3 space-y-1">
             {navItems.map((item) => <Link key={item.id} href={item.href} onClick={() => setMobileOpen(false)} className={`focus-ring flex items-center justify-between rounded-xl px-3 py-3 text-sm font-semibold transition-colors ${active === item.id ? 'bg-sidebar-accent text-sidebar-accent-foreground' : 'text-sidebar-foreground/66 hover:bg-sidebar-accent/70 hover:text-sidebar-foreground'}`} data-testid={`link-nav-${item.id}`}>{item.label}{active === item.id ? <span className="h-1.5 w-1.5 rounded-full bg-sidebar-primary" /> : null}</Link>)}
           </nav>
         </div>
         <div className="mt-auto rounded-2xl border border-sidebar-border bg-sidebar-accent/45 p-4">
           <div className="text-xs font-bold text-sidebar-foreground">Your DepositSafe checks</div>
-          <p className="mt-2 text-[.7rem] leading-5 text-sidebar-foreground/70">Follow the current status of your check records. A check helps inform your decision; it does not guarantee safety.</p>
+          <p className="mt-2 text-[.7rem] leading-5 text-sidebar-foreground/70">{companyCheck ? 'Review your company details and keep your saved result together, with DepositSafe.' : 'Follow the current status of your check records. A check helps inform your decision; it does not guarantee safety.'}</p>
           <Link href="/help" className="focus-ring mt-3 inline-block text-xs font-semibold text-sidebar-foreground underline">Help and FAQs</Link>
         </div>
       </aside>
@@ -289,7 +289,7 @@ export function TransactionForm({ product, products = [], compact = false }: { p
       ) : null}
       {formError ? <p className="rounded-lg bg-destructive/8 px-3 py-2 text-xs font-semibold text-destructive" data-testid="text-form-error">{formError}</p> : null}
       <button type="submit" disabled={isSubmitting || createTransaction.isPending || createCheckout.isPending} className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3.5 text-sm font-extrabold text-primary-foreground transition-transform hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-70" data-testid="button-start-transaction">{isSubmitting || createTransaction.isPending || createCheckout.isPending ? <LoaderCircle className="h-4 w-4 shrink-0 animate-spin" /> : <ArrowRight className="h-4 w-4 shrink-0" />} {isSubmitting || createTransaction.isPending || createCheckout.isPending ? 'Opening checkout…' : selectedProduct ? `Start ${selectedProduct.name}` : 'Choose a check to continue'}</button>
-      <p className="text-center text-[.68rem] leading-5 text-muted-foreground">Starting a check opens checkout; verification is not complete until a result is available. If you continue as a guest, keep this browser tab open to retain access. A reference alone does not restore access in a new tab or on another device.</p>
+      <p className="text-center text-[.68rem] leading-5 text-muted-foreground">{selectedProduct?.slug === 'company-check' ? 'Next: secure £4.99 checkout, then choose your company. Checking as a guest? Keep this tab open to access your check; your reference alone won’t restore access in another tab or on another device.' : 'Starting a check opens checkout; verification is not complete until a result is available. If you continue as a guest, keep this browser tab open to retain access. A reference alone does not restore access in a new tab or on another device.'}</p>
     </form>
   );
 }
