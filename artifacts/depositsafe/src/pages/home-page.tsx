@@ -18,8 +18,8 @@ const featured: Card[] = [
 const small: Card[] = [
   { name: 'Bank Account Check', price: '£7.99', icon: Landmark, tint: 'bg-emerald-100 text-emerald-700', desc: 'Check whether the bank account you’ve been given matches the person or business you’re expecting to pay.', ticks: ['Account holder name checked', 'Bank account details checked against the name you’ve been given'] },
   { name: 'Property Ownership Check', price: '£12.99', icon: Home, tint: 'bg-violet-100 text-violet-700', desc: 'Check who is registered as the owner of a property before you pay money in connection with it.', ticks: ['Registered property owner checked', 'Official Land Registry information'] },
-  { name: 'Company Check', price: '£4.99', icon: Building2, tint: 'bg-amber-100 text-amber-700', desc: 'Check whether a UK company is registered and see what the official records say about it.', ticks: ['Company status and registered details', 'Companies House information'] },
-  { name: 'Right to Rent', price: '£19.99', icon: FileText, tint: 'bg-teal-100 text-teal-700', desc: 'Check a prospective tenant’s Right to Rent for a property in England.', ticks: ['Identity and Right to Rent evidence checked', 'Guided check for England'] },
+  { name: 'Company Check', price: '£4.99', icon: Building2, tint: 'bg-amber-100 text-amber-700', desc: 'Check whether a UK company is registered, who is behind it and whether it is still active.', ticks: ['Directors and key company details', 'See whether the company is active or dissolved', 'Official Companies House information'] },
+  { name: 'Right to Rent', price: '£19.99', icon: FileText, tint: 'bg-teal-100 text-teal-700', desc: 'For landlords and letting agents who need to complete a Right to Rent check for a prospective tenant in England.', ticks: ['Tenant’s identity and Right to Rent evidence checked', 'Guided process from check to result', 'PDF record for your property file'] },
 ];
 
 const scenarios = [
