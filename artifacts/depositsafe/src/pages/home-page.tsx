@@ -9,17 +9,17 @@ const asset = (f: string) => `${import.meta.env.BASE_URL}${f}`;
 const homepageLogoSrc: string | undefined = undefined;
 const slugify = (n: string) => n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
-type Card = { name: string; price: string; icon: typeof UserRound; tint: string; desc: string; ticks: [string, string] };
+type Card = { name: string; price: string; icon: typeof UserRound; tint: string; desc: string; ticks: [string, string, ...string[]] };
 const featured: Card[] = [
-  { name: 'Verify', price: '£9.99', icon: UserRound, tint: 'bg-sky-100 text-primary', desc: 'Confirm the identity of the person you’re dealing with before you go any further.', ticks: ['Identity verification', 'Clear result to review'] },
-  { name: 'Verify Both', price: '£14.99', icon: UsersRound, tint: 'bg-white/20 text-white', desc: 'Both people complete their own identity verification, giving each side more information before deciding whether to proceed.', ticks: ['Two identity verifications', 'One check for both people'] },
-  { name: 'Verify Plus', price: '£14.99', icon: UserPlus, tint: 'bg-sky-100 text-primary', desc: 'Identity and bank account verification together, for when money is about to move.', ticks: ['Identity verification', 'Bank account verification'] },
+  { name: 'Verify', price: '£9.99', icon: UserRound, tint: 'bg-sky-100 text-primary', desc: 'Check that the person you’re dealing with is who they say they are.', ticks: ['Government-issued ID checked — such as a passport or driving licence', 'Live selfie matched to their ID'] },
+  { name: 'Verify Both', price: '£14.99', icon: UsersRound, tint: 'bg-white/20 text-white', desc: 'Each person completes their own check separately, so neither person needs to send their ID privately to the other.', ticks: ['Each person’s government-issued ID checked', 'Each person’s live selfie matched to their own ID'] },
+  { name: 'Verify Plus', price: '£14.99', icon: UserPlus, tint: 'bg-sky-100 text-primary', desc: 'Check the person’s identity and the bank details they’ve given you before you pay them.', ticks: ['Government-issued ID checked — such as a passport or driving licence', 'Live selfie matched to their ID', 'Bank account details checked against the name you’ve been given'] },
 ];
 const small: Card[] = [
-  { name: 'Bank Account Check', price: '£7.99', icon: Landmark, tint: 'bg-emerald-100 text-emerald-700', desc: 'Check the bank account details you’ve been given before you send a payment.', ticks: ['Account details check', 'Check before you pay'] },
-  { name: 'Property Ownership Check', price: '£12.99', icon: Home, tint: 'bg-violet-100 text-violet-700', desc: 'Check the registered ownership of a property before you pay money in connection with it.', ticks: ['Registered ownership information', 'Check before you commit'] },
-  { name: 'Company Check', price: '£4.99', icon: Building2, tint: 'bg-amber-100 text-amber-700', desc: 'Look up a UK company and review its Companies House information before you deal with it.', ticks: ['Company status and registered details', 'Companies House information'] },
-  { name: 'Right to Rent', price: '£19.99', icon: FileText, tint: 'bg-teal-100 text-teal-700', desc: 'A guided Right to Rent check for a prospective tenant.', ticks: ['Guided check', 'England only'] },
+  { name: 'Bank Account Check', price: '£7.99', icon: Landmark, tint: 'bg-emerald-100 text-emerald-700', desc: 'Check whether the bank account you’ve been given matches the person or business you’re expecting to pay.', ticks: ['Account holder name checked', 'Bank account details checked against the name you’ve been given'] },
+  { name: 'Property Ownership Check', price: '£12.99', icon: Home, tint: 'bg-violet-100 text-violet-700', desc: 'Check who is registered as the owner of a property before you pay money in connection with it.', ticks: ['Registered property owner checked', 'Official Land Registry information'] },
+  { name: 'Company Check', price: '£4.99', icon: Building2, tint: 'bg-amber-100 text-amber-700', desc: 'Check whether a UK company is registered and see what the official records say about it.', ticks: ['Company status and registered details', 'Companies House information'] },
+  { name: 'Right to Rent', price: '£19.99', icon: FileText, tint: 'bg-teal-100 text-teal-700', desc: 'Check a prospective tenant’s Right to Rent for a property in England.', ticks: ['Identity and Right to Rent evidence checked', 'Guided check for England'] },
 ];
 
 const scenarios = [
