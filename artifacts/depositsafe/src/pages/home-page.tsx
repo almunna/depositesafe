@@ -69,9 +69,9 @@ export function HomePage() {
           <img src={asset('approved-homepage-woman.png')} alt="" className="h-full w-full object-cover object-[50%_100%]" fetchPriority="high" />
         </div>
         <div className="relative mx-auto max-w-[1200px] px-5 py-9 sm:py-10 lg:px-8 lg:py-14">
+          <PageBrand className="mb-6 flex justify-center lg:mb-8" />
           <div className="max-w-xl">
-            <PageBrand />
-            <h1 className="ds-display text-[2.1rem] font-extrabold leading-[1.1] text-[#002553] sm:text-5xl lg:text-[3.1rem]">Before you pay them,<br /><span className="text-[#0065D5]">check them.</span></h1>
+            <h1 className="ds-display text-[1.65rem] font-extrabold leading-[1.1] text-[#002553] min-[360px]:text-[1.85rem] sm:text-[2.5rem] lg:text-[2.65rem]">Before you pay them,<br /><span className="text-[#0065D5]">check them.</span></h1>
             <p className="mt-4 max-w-[30rem] text-base leading-7 text-[#2c3e55]">Check the people, businesses, property and payment details involved before you commit. DepositSafe brings the information you need together in one clear place.</p>
             <a href="#checks" className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-[5px] bg-[#0065D5] px-6 py-3 sm:w-auto text-sm font-semibold text-white hover:brightness-110" data-testid="link-hero-view-checks">View our checks <ArrowRight className="h-4 w-4" /></a>
           </div>

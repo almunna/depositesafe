@@ -33,6 +33,12 @@ Main customer-facing pages need prominent DepositSafe branding in the page conte
 
 **How to apply:** Use only the approved logo/wordmark, with breathing room and proportionate responsive sizing. On phones, page-content branding should be materially stronger than navigation branding. Preserve page titles, copy, CTA behaviour and the approved homepage image; never make the content logo sticky or remove the navigation logo.
 
+The homepage hero's page-content logo is centred horizontally; its navy/blue proposition should remain strong but not overpower the DepositSafe brand.
+
+**Why:** On 2026-10-03 the user specifically requested centring the large homepage content logo and moderately reducing the headline because it was too large. This was a homepage-only hierarchy adjustment, not a header change or redesign.
+
+**How to apply:** Preserve clear brand → proposition → supporting-copy spacing, mobile logo presence and deliberate headline wrapping. Do not propagate homepage-only centring or headline changes to the sticky header or other pages without a separate request.
+
 Hero image fitting must preserve the passport/document on the table as well as the woman and her phone, on desktop and mobile.
 
 **Why:** The user explained that the lower document context is essential to the photograph's purpose; cropping it out makes the image simply a woman looking at a phone.
