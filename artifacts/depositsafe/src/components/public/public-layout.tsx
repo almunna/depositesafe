@@ -24,10 +24,10 @@ export function ShieldIcon({ className = 'h-9 w-9' }: { className?: string }) {
   );
 }
 
-export function PublicLogo({ light = false }: { light?: boolean }) {
+export function PublicLogo({ light = false, logoSrc }: { light?: boolean; logoSrc?: string }) {
   return (
     <Link href="/" className={`inline-flex shrink-0 flex-col ${light ? 'rounded-lg bg-white px-3 py-2' : ''}`} data-testid="link-public-logo" aria-label="DepositSafe home">
-      <img src={`${import.meta.env.BASE_URL}approved-depositsafe-logo.png`} alt="DepositSafe" className="h-9 w-auto mix-blend-multiply" />
+      <img src={logoSrc ?? `${import.meta.env.BASE_URL}approved-depositsafe-logo.png`} alt="DepositSafe" className="h-9 w-auto mix-blend-multiply" />
       <span className="-mt-1 whitespace-nowrap pl-9 text-[.62rem] font-medium text-muted-foreground">Verify with confidence.</span>
     </Link>
   );
@@ -67,7 +67,7 @@ function HeaderSearch() {
   );
 }
 
-function PublicHeader() {
+function PublicHeader({ logoSrc, homepage = false }: { logoSrc?: string; homepage?: boolean }) {
   const [open, setOpen] = useState(false);
   useEffect(() => {
     if (!open) return;
@@ -79,21 +79,21 @@ function PublicHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/80 bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3 lg:px-8">
-        <PublicLogo />
-        <nav className="hidden items-center gap-1 lg:flex" aria-label="Main">
+        <PublicLogo logoSrc={logoSrc} />
+        <nav className={`hidden items-center gap-1 ${homepage ? 'xl:flex' : 'lg:flex'}`} aria-label="Main">
           {nav.map((n) => <a key={n.label} href={n.href} className={link} data-testid={`link-nav-${n.label.toLowerCase().replace(/\W+/g, '-')}`}>{n.label}</a>)}
         </nav>
-        <div className="hidden items-center gap-2 lg:flex">
+        <div className={`hidden items-center gap-2 ${homepage ? 'xl:flex' : 'lg:flex'}`}>
           <HeaderSearch />
           <Link href="/sign-in" className="whitespace-nowrap rounded-full border border-primary px-5 py-2 text-sm font-semibold text-primary hover:bg-secondary" data-testid="link-public-sign-in">Sign in</Link>
           <a href={`${base}/#get-started`} className="whitespace-nowrap rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-sm hover:brightness-110" data-testid="link-public-get-started">Get Started</a>
         </div>
-        <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls="public-mobile-menu" aria-label={open ? 'Close menu' : 'Open menu'} className="grid h-11 w-11 place-items-center rounded-lg border border-border bg-white lg:hidden" data-testid="button-public-menu">
+        <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls="public-mobile-menu" aria-label={open ? 'Close menu' : 'Open menu'} className={`grid h-11 w-11 place-items-center rounded-lg border border-border bg-white ${homepage ? 'xl:hidden' : 'lg:hidden'}`} data-testid="button-public-menu">
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
       {open ? (
-        <nav id="public-mobile-menu" aria-label="Mobile" className="border-t border-border bg-white px-5 pb-5 pt-3 lg:hidden">
+        <nav id="public-mobile-menu" aria-label="Mobile" className={`border-t border-border bg-white px-5 pb-5 pt-3 ${homepage ? 'xl:hidden' : 'lg:hidden'}`}>
           <div className="flex flex-col">
             {nav.map((n) => <a key={n.label} href={n.href} onClick={() => setOpen(false)} className="border-b border-border/60 py-3.5 text-base font-semibold">{n.label}</a>)}
           </div>
@@ -107,13 +107,13 @@ function PublicHeader() {
   );
 }
 
-export function PublicFooter({ companyCheck = false }: { companyCheck?: boolean }) {
+export function PublicFooter({ companyCheck = false, homepage = false, logoSrc }: { companyCheck?: boolean; homepage?: boolean; logoSrc?: string }) {
   return (
     <footer className="bg-[hsl(var(--ds-navy))] text-white">
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-[1.4fr_1fr_1fr] lg:px-8">
         <div>
-          <PublicLogo light />
-          <p className="mt-5 max-w-sm text-sm leading-6 text-white/65">{companyCheck ? 'Know more about the business you’re dealing with. Your Company Check, clearly presented and saved with DepositSafe.' : 'DepositSafe is a pre-launch service. Checks, availability and providers may change as we open up.'}</p>
+          <PublicLogo light logoSrc={homepage ? logoSrc : undefined} />
+          <p className="mt-5 max-w-sm text-sm leading-6 text-white/65">{homepage ? 'Verification checks for the people, property and businesses you deal with in the UK.' : companyCheck ? 'Know more about the business you’re dealing with. Your Company Check, clearly presented and saved with DepositSafe.' : 'DepositSafe is a pre-launch service. Checks, availability and providers may change as we open up.'}</p>
         </div>
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-white/50">Service</p>
@@ -139,13 +139,13 @@ export function PublicFooter({ companyCheck = false }: { companyCheck?: boolean 
   );
 }
 
-export function PublicLayout({ children, companyCheck = false }: { children: ReactNode; companyCheck?: boolean }) {
+export function PublicLayout({ children, companyCheck = false, homepage = false, logoSrc }: { children: ReactNode; companyCheck?: boolean; homepage?: boolean; logoSrc?: string }) {
   return (
     <div className="ds-public min-h-[100dvh]">
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2">Skip to content</a>
-      <PublicHeader />
+      <PublicHeader logoSrc={homepage ? logoSrc : undefined} homepage={homepage} />
       <main id="main">{children}</main>
-      <PublicFooter companyCheck={companyCheck} />
+      <PublicFooter companyCheck={companyCheck} homepage={homepage} logoSrc={logoSrc} />
     </div>
   );
 }
