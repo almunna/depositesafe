@@ -44,3 +44,9 @@ Company Check is a DepositSafe-owned customer journey, not a Credas journey. The
 **Why:** Company Check presentation needs DepositSafe copy and branding; Credas handover work must not imply that Credas supplies the Companies House check.
 
 **How to apply:** Keep Company Check UX polish scoped to that product. Preserve the working £4.99 payment and register-check behavior, and do not use this polish as a reason to alter Credas journeys or other products.
+
+The consumer-facing Verify wording supplied on 2026-10-03 is approved copy, not a provisional draft. Keep provider names and technical verification terminology out of its sales copy.
+
+**Why:** The user explicitly supplied the complete wording and hierarchy and limited the work to Verify presentation, with existing verification and payment behaviour preserved.
+
+**How to apply:** Preserve that approved wording unless the user requests changes. Do not use future Verify presentation work as permission to modify shared navigation, branding, other products or integrations.

@@ -34,6 +34,7 @@ import { CompanyCheckPanel } from '@/components/company-check-panel';
 import { CompanyCheckProgress } from '@/components/company-check-progress';
 import { PublicLayout, usePageMeta } from '@/components/public/public-layout';
 import { getProductCopy } from '@/lib/product-copy';
+import { VerifyProductPage } from './verify-product-page';
 
 export { HomePage } from './home-page';
 
@@ -42,10 +43,28 @@ export function ProductDetailPage() {
   const product = useGetProduct(slug, { query: { queryKey: getGetProductQueryKey(slug), enabled: Boolean(slug), retry: false } });
   const copy = getProductCopy(slug);
   const isCompanyCheck = slug === 'company-check';
-  usePageMeta(`${product.data?.name ?? 'Verification checks'} | DepositSafe`, copy?.summary ?? 'Explore DepositSafe checks before you commit or send money.');
+  usePageMeta(
+    slug === 'verify' ? 'Verify | DepositSafe' : `${product.data?.name ?? 'Verification checks'} | DepositSafe`,
+    slug === 'verify'
+      ? "Whether you're paying a deposit, buying from someone privately or dealing with someone you've met online, Verify gives you a simple way to check their identity before you proceed."
+      : copy?.summary ?? 'Explore DepositSafe checks before you commit or send money.',
+  );
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [slug]);
+  if (slug === 'verify') {
+    return (
+      <PublicLayout>
+        <VerifyProductPage
+          checkout={
+            product.isLoading ? <SkeletonRows count={2} /> : product.isError || !product.data ? (
+              <QueryError message="We could not load the Verify start form." onRetry={() => void product.refetch()} />
+            ) : <TransactionForm product={product.data} />
+          }
+        />
+      </PublicLayout>
+    );
+  }
   if (product.isLoading) return <PublicProductFrame companyCheck={isCompanyCheck}><SkeletonRows count={3} /></PublicProductFrame>;
   if (product.isError || !product.data) return <PublicProductFrame companyCheck={isCompanyCheck}><QueryError message="This DepositSafe check could not be found." onRetry={() => void product.refetch()} /><Link href="/" className="focus-ring mt-5 inline-flex items-center gap-2 font-bold text-primary"><ArrowLeft className="h-4 w-4" /> Browse DepositSafe checks</Link></PublicProductFrame>;
   return (
