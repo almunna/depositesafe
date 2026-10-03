@@ -65,7 +65,7 @@ export function HomePage() {
     <PublicLayout homepage logoSrc={homepageLogoSrc}>
       <section className="relative overflow-hidden bg-[#F3F8FB]">
         <div className="hp-hero-img absolute inset-y-0 right-0 hidden w-[34%] lg:block" aria-hidden="true">
-          <img src={asset('approved-homepage-woman.jpg')} alt="" className="h-full w-full object-cover object-[60%_20%]" fetchPriority="high" />
+          <img src={asset('approved-homepage-woman.png')} alt="" className="h-full w-full object-cover object-[60%_20%]" fetchPriority="high" />
         </div>
         <div className="relative mx-auto max-w-[1200px] px-5 py-9 sm:py-10 lg:px-8 lg:py-14">
           <div className="max-w-xl">
@@ -85,7 +85,7 @@ export function HomePage() {
             </ul>
           </div>
         </div>
-        <div className="overflow-hidden lg:hidden"><img src={asset('approved-homepage-woman.jpg')} alt="A smiling woman looking at her phone" className="h-52 w-full object-cover object-[60%_20%] sm:h-64" /></div>
+        <div className="overflow-hidden lg:hidden"><img src={asset('approved-homepage-woman.png')} alt="A smiling woman looking at her phone" className="h-52 w-full object-cover object-[60%_20%] sm:h-64" /></div>
       </section>
 
       <section id="checks" className="mx-auto max-w-[1200px] scroll-mt-20 px-5 py-12 lg:px-8 lg:py-14">
