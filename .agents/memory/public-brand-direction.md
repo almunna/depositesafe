@@ -13,13 +13,13 @@ Homepage and logo changes must use the user-uploaded approved logo and final hom
 
 **Why:** The user required a pause and then supplied both actual reference files after several description-based implementations did not reproduce the approved target.
 
-**How to apply:** Inspect both actual images before visual changes. Use the supplied logo artwork, not a redrawn generic shield/check. If either authoritative reference is unavailable, request it and pause implementation.
+**How to apply:** Inspect actual references when matching artwork. For homepage copy/formatting work, retain the current logo and woman photograph until separately approved replacements are supplied; do not invent assets or block this work on replacements.
 
-The approved hero headline is exactly “Before you pay them, check them.” The brand tagline “Verify with confidence.” belongs to the logo/wordmark, not as a substitute hero headline. The closing banner must say “Certainty before commitment.” Verify Both must say “You verify them. They verify you.”
+The hero headline remains “Before you pay them, check them.” without an eyebrow. “Verify with confidence.” belongs to the logo/wordmark. Verify Both retains “You verify them. They verify you.” The former closing line “Certainty before commitment.” is no longer approved.
 
-**Why:** The user explicitly approved this final content direction and prohibited alternative taglines, layouts and brand language after earlier homepage iterations.
+**Why:** On 2026-10-03 the user replaced the former certainty/safety-led copy with an information-led direction: checks support the customer's own decision, not guarantees of trust, safety, legitimacy or authority.
 
-**How to apply:** Do not paraphrase these strings. Follow the actual uploaded mock-up: compact human-led hero with five-category checklist and benefits; three featured cards (Verify, Verify Both in the blue centre card, Verify Plus); four smaller cards below; compact three-step process; six scenario tiles; dark blue key-photograph closing banner. Keep “Choose the right check for your situation”. Changes to homepage presentation must not modify existing protected, authentication, transaction or backend/provider routes.
+**How to apply:** Preserve the existing page structure and exact supplied wording, but never restore older reference-copy promises such as certainty, trusted verification or safer decisions. DepositSafe's positioning is broader than a verification company, without inventing protection capabilities. Homepage work must not alter protected, authentication, transaction or backend/provider behaviour.
 
 Product reference screenshots may contain outdated prices. Explicit locked V1 prices in the latest user instruction take precedence over screenshot pricing.
 

@@ -75,13 +75,14 @@ function PublicHeader({ logoSrc, homepage = false }: { logoSrc?: string; homepag
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [open]);
+  const items = homepage ? [...nav.slice(0, 5), { label: 'Help & FAQs', href: `${base}/help` }] : nav;
   const link = 'whitespace-nowrap rounded-lg px-2 py-2 text-xs font-semibold text-foreground/75 hover:bg-secondary hover:text-foreground xl:px-3 xl:text-sm';
   return (
     <header className="sticky top-0 z-40 border-b border-border/80 bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3 lg:px-8">
         <PublicLogo logoSrc={logoSrc} />
         <nav className={`hidden items-center gap-1 ${homepage ? 'xl:flex' : 'lg:flex'}`} aria-label="Main">
-          {nav.map((n) => <a key={n.label} href={n.href} className={link} data-testid={`link-nav-${n.label.toLowerCase().replace(/\W+/g, '-')}`}>{n.label}</a>)}
+          {items.map((n) => <a key={n.label} href={n.href} className={link} data-testid={`link-nav-${n.label.toLowerCase().replace(/\W+/g, '-')}`}>{n.label}</a>)}
         </nav>
         <div className={`hidden items-center gap-2 ${homepage ? 'xl:flex' : 'lg:flex'}`}>
           <HeaderSearch />
@@ -95,7 +96,7 @@ function PublicHeader({ logoSrc, homepage = false }: { logoSrc?: string; homepag
       {open ? (
         <nav id="public-mobile-menu" aria-label="Mobile" className={`border-t border-border bg-white px-5 pb-5 pt-3 ${homepage ? 'xl:hidden' : 'lg:hidden'}`}>
           <div className="flex flex-col">
-            {nav.map((n) => <a key={n.label} href={n.href} onClick={() => setOpen(false)} className="border-b border-border/60 py-3.5 text-base font-semibold">{n.label}</a>)}
+            {items.map((n) => <a key={n.label} href={n.href} onClick={() => setOpen(false)} className="border-b border-border/60 py-3.5 text-base font-semibold">{n.label}</a>)}
           </div>
           <div className="mt-4 grid grid-cols-2 gap-3">
             <Link href="/sign-in" onClick={() => setOpen(false)} className="rounded-lg border border-border py-3 text-center text-sm font-bold">Sign in</Link>
@@ -113,7 +114,7 @@ export function PublicFooter({ companyCheck = false, homepage = false, logoSrc }
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-[1.4fr_1fr_1fr] lg:px-8">
         <div>
           <PublicLogo light logoSrc={homepage ? logoSrc : undefined} />
-          <p className="mt-5 max-w-sm text-sm leading-6 text-white/65">{homepage ? 'Verification checks for the people, property and businesses you deal with in the UK.' : companyCheck ? 'Know more about the business you’re dealing with. Your Company Check, clearly presented and saved with DepositSafe.' : 'DepositSafe is a pre-launch service. Checks, availability and providers may change as we open up.'}</p>
+          <p className="mt-5 max-w-sm text-sm leading-6 text-white/65">{homepage ? 'Helping you check the details that matter before you commit.' : companyCheck ? 'Know more about the business you’re dealing with. Your Company Check, clearly presented and saved with DepositSafe.' : 'DepositSafe is a pre-launch service. Checks, availability and providers may change as we open up.'}</p>
         </div>
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-white/50">Service</p>
@@ -134,7 +135,7 @@ export function PublicFooter({ companyCheck = false, homepage = false, logoSrc }
           </ul>
         </div>
       </div>
-      <div className="border-t border-white/10 px-5 py-5 text-center text-xs text-white/50">DepositSafe. Verification checks are an aid to your own decisions, not legal or financial advice.</div>
+      <div className={`border-t border-white/10 px-5 py-5 text-center text-white/50 ${homepage ? 'text-sm leading-6' : 'text-xs'}`}>{homepage ? 'DepositSafe checks provide information to support your decisions. They are not legal or financial advice.' : 'DepositSafe. Verification checks are an aid to your own decisions, not legal or financial advice.'}</div>
     </footer>
   );
 }
