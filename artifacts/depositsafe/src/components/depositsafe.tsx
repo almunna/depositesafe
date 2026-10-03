@@ -69,7 +69,6 @@ export function BrandMark({ inverse = false }: { inverse?: boolean }) {
   return (
     <Link href="/" className={`focus-ring inline-flex shrink-0 self-start flex-col items-start ${inverse ? 'rounded-lg bg-white px-3 py-2' : ''}`} data-testid="link-brand-home" aria-label="DepositSafe home">
       <img src={`${import.meta.env.BASE_URL}approved-depositsafe-logo.png`} alt="DepositSafe" className="h-9 w-auto mix-blend-multiply" />
-      <span className="-mt-1 whitespace-nowrap pl-9 text-[.62rem] font-medium text-[#4e5e74]">Verify with confidence.</span>
     </Link>
   );
 }

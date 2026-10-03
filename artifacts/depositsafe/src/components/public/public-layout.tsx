@@ -28,7 +28,6 @@ export function PublicLogo({ light = false, logoSrc }: { light?: boolean; logoSr
   return (
     <Link href="/" className={`inline-flex shrink-0 flex-col ${light ? 'rounded-lg bg-white px-3 py-2' : ''}`} data-testid="link-public-logo" aria-label="DepositSafe home">
       <img src={logoSrc ?? `${import.meta.env.BASE_URL}approved-depositsafe-logo.png`} alt="DepositSafe" className="h-9 w-auto mix-blend-multiply" />
-      <span className="-mt-1 whitespace-nowrap pl-9 text-[.62rem] font-medium text-muted-foreground">Verify with confidence.</span>
     </Link>
   );
 }

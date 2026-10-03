@@ -3,7 +3,7 @@ name: DepositSafe public brand direction
 description: User corrections concerning public brand approval, human photography and reference pricing.
 ---
 
-The public DepositSafe brand direction is blue/navy with white/light-blue surfaces, a shield/check security mark, the DepositSafe wordmark and “Verify with confidence.” The warm teal/gold “Paperwork you can stand behind” concept and generated green/gold starter icon were rejected. The user wants the approved human-led homepage direction, not an illustration-only page or further creative variations.
+The public DepositSafe brand direction is blue/navy with white/light-blue surfaces, a shield/check security mark and the DepositSafe wordmark, with no tagline beneath the logo. The warm teal/gold “Paperwork you can stand behind” concept and generated green/gold starter icon were rejected. The user wants the approved human-led homepage direction, not an illustration-only page or further creative variations.
 
 **Why:** Existing starter assets were repeatedly mistaken for the approved branding. An asset being present in the app is not evidence the user approved it. A recreated blue mark based on a written description must not be described as the original approved logo.
 
@@ -15,11 +15,17 @@ Homepage and logo changes must use the user-uploaded approved logo and final hom
 
 **How to apply:** Inspect actual references when matching artwork. For homepage copy/formatting work, retain the current logo and woman photograph until separately approved replacements are supplied; do not invent assets or block this work on replacements.
 
-The hero headline remains “Before you pay them, check them.” without an eyebrow. “Verify with confidence.” belongs to the logo/wordmark. Verify Both retains “You verify them. They verify you.” The former closing line “Certainty before commitment.” is no longer approved.
+The hero headline remains “Before you pay them, check them.” without an eyebrow. Verify Both retains “You verify them. They verify you.” The former closing line “Certainty before commitment.” is no longer approved.
 
 **Why:** On 2026-10-03 the user replaced the former certainty/safety-led copy with an information-led direction: checks support the customer's own decision, not guarantees of trust, safety, legitimacy or authority.
 
 **How to apply:** Preserve the existing page structure and exact supplied wording, but never restore older reference-copy promises such as certainty, trusted verification or safer decisions. DepositSafe's positioning is broader than a verification company, without inventing protection capabilities. Homepage work must not alter protected, authentication, transaction or backend/provider behaviour.
+
+The approved logo is the user's supplied clean shield + DepositSafe wordmark image, without a tagline. Use the exact supplied artwork, not a redrawn, generated or substituted version.
+
+**Why:** On 2026-10-03 the user supplied the clean logo and explicitly approved applying it and removing the separately rendered tagline beneath the logo.
+
+**How to apply:** Do not restore “Verify with confidence.” beneath logo components. Preserve supplied artwork and do not infer permission to change unrelated copy, assets or behaviour from a logo replacement.
 
 Product reference screenshots may contain outdated prices. Explicit locked V1 prices in the latest user instruction take precedence over screenshot pricing.
 
