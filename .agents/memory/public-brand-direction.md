@@ -27,6 +27,12 @@ The approved logo is the user's supplied clean shield + DepositSafe wordmark ima
 
 **How to apply:** Do not restore “Verify with confidence.” beneath logo components. Preserve supplied artwork and do not infer permission to change unrelated copy, assets or behaviour from a logo replacement.
 
+Hero image fitting must preserve the passport/document on the table as well as the woman and her phone, on desktop and mobile.
+
+**Why:** The user explained that the lower document context is essential to the photograph's purpose; cropping it out makes the image simply a woman looking at a phone.
+
+**How to apply:** Preserve the supplied photograph and existing hero dimensions. Prioritise the document context over an edge-to-edge close crop; do not edit or regenerate the artwork to solve fitting problems.
+
 Product reference screenshots may contain outdated prices. Explicit locked V1 prices in the latest user instruction take precedence over screenshot pricing.
 
 **Why:** The user explicitly locked the seven current prices and warned not to copy older amounts visible in design references.
