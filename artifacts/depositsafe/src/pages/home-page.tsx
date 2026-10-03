@@ -85,7 +85,7 @@ export function HomePage() {
             </ul>
           </div>
         </div>
-        <div className="overflow-hidden lg:hidden"><img src={asset('approved-homepage-woman.png')} alt="A smiling woman looking at her phone" className="h-52 w-full object-contain object-center sm:h-64" /></div>
+        <div className="overflow-hidden lg:hidden"><img src={asset('approved-homepage-woman.png')} alt="A smiling woman looking at her phone" className="h-auto w-full" /></div>
       </section>
 
       <section id="checks" className="mx-auto max-w-[1200px] scroll-mt-20 px-5 py-12 lg:px-8 lg:py-14">

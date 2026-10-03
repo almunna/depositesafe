@@ -31,7 +31,7 @@ Hero image fitting must preserve the passport/document on the table as well as t
 
 **Why:** The user explained that the lower document context is essential to the photograph's purpose; cropping it out makes the image simply a woman looking at a phone.
 
-**How to apply:** Preserve the supplied photograph and existing hero dimensions. Prioritise the document context over an edge-to-edge close crop; do not edit or regenerate the artwork to solve fitting problems.
+**How to apply:** Preserve the supplied photograph and desktop hero treatment. On 2026-10-03 the user approved full-width, edge-to-edge mobile/tablet presentation at the photograph's natural 3:2 ratio, accepting a taller mobile hero to retain the composition. Do not restore contained side gaps or edit/regenerate the artwork to solve fitting problems.
 
 Product reference screenshots may contain outdated prices. Explicit locked V1 prices in the latest user instruction take precedence over screenshot pricing.
 
