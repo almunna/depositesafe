@@ -1,10 +1,12 @@
 import { ArrowLeft, FileQuestion } from 'lucide-react';
 import { Link } from 'wouter';
+import { PageBrand } from '@/components/page-brand';
 
 export default function NotFound() {
   return (
     <div className="ds-customer flex min-h-[100dvh] items-center justify-center bg-background px-5">
       <div className="w-full max-w-md text-center">
+        <PageBrand className="mx-auto w-fit" />
         <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-primary/20 bg-primary/10 text-primary"><FileQuestion className="h-6 w-6" /></div>
         <p className="eyebrow mt-7 text-primary">Page not found</p>
         <h1 className="mt-3 font-display text-5xl tracking-[-.04em]">We can’t find that page.</h1>

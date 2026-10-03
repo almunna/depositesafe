@@ -22,6 +22,7 @@ import {
   secureCheckoutUrl,
 } from '@/components/payment-panel';
 import { getProductCopy } from '@/lib/product-copy';
+import { PageBrand } from '@/components/page-brand';
 
 const statusLabels: Record<TransactionStatus, string> = {
   STARTED: 'Started',
@@ -65,10 +66,10 @@ export function isActiveStatus(status: TransactionStatus) {
   return activeStatuses.includes(status);
 }
 
-export function BrandMark({ inverse = false }: { inverse?: boolean }) {
+export function BrandMark({ inverse = false, pageContent = false }: { inverse?: boolean; pageContent?: boolean }) {
   return (
-    <Link href="/" className={`focus-ring inline-flex shrink-0 self-start flex-col items-start ${inverse ? 'rounded-lg bg-white px-3 py-2' : ''}`} data-testid="link-brand-home" aria-label="DepositSafe home">
-      <img src={`${import.meta.env.BASE_URL}approved-depositsafe-logo.png`} alt="DepositSafe" className="h-9 w-auto mix-blend-multiply" />
+    <Link href="/" className={`focus-ring inline-flex max-w-full shrink-0 self-start flex-col items-start ${inverse ? 'rounded-lg bg-white px-3 py-2' : ''}`} data-testid="link-brand-home" aria-label="DepositSafe home">
+      {pageContent ? <PageBrand className="mb-0 lg:mb-0" /> : <img src={`${import.meta.env.BASE_URL}approved-depositsafe-logo.png`} alt="DepositSafe" className="h-9 w-auto mix-blend-multiply" />}
     </Link>
   );
 }
@@ -168,7 +169,7 @@ export function AppShell({ children, active = 'dashboard', title, companyCheck =
             <Link href="/sign-in" className="focus-ring rounded-lg border border-border bg-card px-3 py-2 text-xs font-bold hover:bg-muted" data-testid="link-account">Account</Link>
           </div>
         </header>
-        <div className="mx-auto max-w-7xl px-5 py-8 lg:px-10 lg:py-10">{children}</div>
+        <div className="mx-auto max-w-7xl px-5 py-8 lg:px-10 lg:py-10">{active !== 'admin' ? <PageBrand /> : null}{children}</div>
       </main>
     </div>
   );

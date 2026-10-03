@@ -1,9 +1,9 @@
 ---
 name: DepositSafe public brand direction
-description: User corrections concerning public brand approval, human photography and reference pricing.
+description: User corrections concerning brand approval, scrolling page-content branding, human photography and reference pricing.
 ---
 
-The public DepositSafe brand direction is blue/navy with white/light-blue surfaces, a shield/check security mark and the DepositSafe wordmark, with no tagline beneath the logo. The warm teal/gold “Paperwork you can stand behind” concept and generated green/gold starter icon were rejected. The user wants the approved human-led homepage direction, not an illustration-only page or further creative variations.
+The public DepositSafe brand direction is blue/navy with white/light-blue surfaces, a shield/check security mark and the DepositSafe wordmark, with no tagline beneath the logo. The warm teal/gold “Paperwork you can stand behind” concept and generated green/gold starter icon were rejected. The user wants the approved human-led homepage direction, not an illustration-only homepage or further creative variations.
 
 **Why:** Existing starter assets were repeatedly mistaken for the approved branding. An asset being present in the app is not evidence the user approved it. A recreated blue mark based on a written description must not be described as the original approved logo.
 
@@ -26,6 +26,12 @@ The approved logo is the user's supplied clean shield + DepositSafe wordmark ima
 **Why:** On 2026-10-03 the user supplied the clean logo and explicitly approved applying it and removing the separately rendered tagline beneath the logo.
 
 **How to apply:** Do not restore “Verify with confidence.” beneath logo components. Preserve supplied artwork and do not infer permission to change unrelated copy, assets or behaviour from a logo replacement.
+
+Main customer-facing pages need prominent DepositSafe branding in the page content above their primary title or proposition, separate from the smaller sticky navigation logo. The content brand scrolls away; the navigation remains sticky.
+
+**Why:** On 2026-10-03 the user distinguished these two roles explicitly: visitors landing directly on any main page should identify DepositSafe as the company before reading the proposition. Enlarging the navigation logo alone does not satisfy this.
+
+**How to apply:** Use only the approved logo/wordmark, with breathing room and proportionate responsive sizing. On phones, page-content branding should be materially stronger than navigation branding. Preserve page titles, copy, CTA behaviour and the approved homepage image; never make the content logo sticky or remove the navigation logo.
 
 Hero image fitting must preserve the passport/document on the table as well as the woman and her phone, on desktop and mobile.
 
@@ -50,3 +56,9 @@ The consumer-facing Verify wording supplied on 2026-10-03 is approved copy, not 
 **Why:** The user explicitly supplied the complete wording and hierarchy and limited the work to Verify presentation, with existing verification and payment behaviour preserved.
 
 **How to apply:** Preserve that approved wording unless the user requests changes. Do not use future Verify presentation work as permission to modify shared navigation, branding, other products or integrations.
+
+Verify should use conceptual product storytelling, not another lifestyle photograph of someone with a phone and passport. The homepage already supplies that photographic context.
+
+**Why:** On 2026-10-03 the user explicitly rejected repeating that imagery on Verify while approving its existing copy and requesting more engaging presentation.
+
+**How to apply:** Use abstract document, live-selfie and identity-match visuals. Do not fabricate a realistic provider interface, claim a conceptual visual is an actual screenshot, or imply DepositSafe owns the underlying verification technology.

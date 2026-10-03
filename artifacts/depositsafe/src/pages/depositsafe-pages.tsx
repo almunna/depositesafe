@@ -34,13 +34,14 @@ import { CompanyCheckPanel } from '@/components/company-check-panel';
 import { CompanyCheckProgress } from '@/components/company-check-progress';
 import { PublicLayout, usePageMeta } from '@/components/public/public-layout';
 import { getProductCopy } from '@/lib/product-copy';
-import { VerifyProductPage } from './verify-product-page';
+import { VerifyProductExperience } from './verify-product-experience';
+import { PageBrand } from '@/components/page-brand';
 
 export { HomePage } from './home-page';
 
 export function ProductDetailPage() {
   const { slug = '' } = useParams<{ slug: string }>();
-  const product = useGetProduct(slug, { query: { queryKey: getGetProductQueryKey(slug), enabled: Boolean(slug), retry: false } });
+  const product = useGetProduct(slug, { query: { queryKey: getGetProductQueryKey(slug), enabled: Boolean(slug) && slug !== 'verify', retry: false } });
   const copy = getProductCopy(slug);
   const isCompanyCheck = slug === 'company-check';
   usePageMeta(
@@ -55,13 +56,7 @@ export function ProductDetailPage() {
   if (slug === 'verify') {
     return (
       <PublicLayout>
-        <VerifyProductPage
-          checkout={
-            product.isLoading ? <SkeletonRows count={2} /> : product.isError || !product.data ? (
-              <QueryError message="We could not load the Verify start form." onRetry={() => void product.refetch()} />
-            ) : <TransactionForm product={product.data} />
-          }
-        />
+        <VerifyProductExperience />
       </PublicLayout>
     );
   }
@@ -99,7 +94,7 @@ export function ProductDetailPage() {
 }
 
 function PublicProductFrame({ children, companyCheck = false }: { children: ReactNode; companyCheck?: boolean }) {
-  return <PublicLayout companyCheck={companyCheck}><div className="mx-auto max-w-7xl px-5 py-14 lg:px-8 lg:py-20">{children}</div></PublicLayout>;
+  return <PublicLayout companyCheck={companyCheck}><div className="mx-auto max-w-7xl px-5 py-14 lg:px-8 lg:py-20"><PageBrand />{children}</div></PublicLayout>;
 }
 
 function InfoTile({ icon, title }: { icon: ReactNode; title: string }) {
@@ -121,7 +116,7 @@ export function AuthPage({ mode }: { mode: 'sign-in' | 'sign-up' }) {
       fontFamily: 'Inter, Manrope, sans-serif',
     },
   };
-  return <div className="ds-customer grid min-h-[100dvh] lg:grid-cols-[.86fr_1.14fr]"><div className="hidden flex-col justify-between bg-sidebar p-10 text-sidebar-foreground lg:flex"><BrandMark inverse /><div><p className="eyebrow text-sidebar-foreground/80">DepositSafe account</p><h1 className="mt-5 max-w-md font-display text-5xl leading-[1.1] tracking-[-.04em]">Your DepositSafe checks, together.</h1><p className="mt-6 max-w-sm text-sm leading-6 text-sidebar-foreground/80">Sign in to follow your checks, or create an account to keep your check records together.</p></div><p className="text-sm text-sidebar-foreground/80">Verify with confidence.</p></div><div className="flex items-center justify-center bg-background px-5 py-10"><div className="w-full max-w-[440px]"><div className="mb-8 lg:hidden"><BrandMark /></div><Link href="/" className="focus-ring mb-10 inline-flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-foreground" data-testid="link-auth-home"><ArrowLeft className="h-3.5 w-3.5" /> Back to DepositSafe</Link><div className="rounded-2xl border border-border bg-card p-3 shadow-[0_18px_48px_rgba(0,37,83,.07)] sm:p-5">{isSignIn ? <SignIn appearance={appearance} routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} /> : <SignUp appearance={appearance} routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />}</div><p className="mt-6 text-center text-[.68rem] leading-5 text-muted-foreground">DepositSafe never stores your password.</p></div></div></div>;
+  return <div className="ds-customer grid min-h-[100dvh] lg:grid-cols-[.86fr_1.14fr]"><div className="hidden flex-col justify-between bg-sidebar p-10 text-sidebar-foreground lg:flex"><BrandMark inverse pageContent /><div><p className="eyebrow text-sidebar-foreground/80">DepositSafe account</p><h1 className="mt-5 max-w-md font-display text-5xl leading-[1.1] tracking-[-.04em]">Your DepositSafe checks, together.</h1><p className="mt-6 max-w-sm text-sm leading-6 text-sidebar-foreground/80">Sign in to follow your checks, or create an account to keep your check records together.</p></div><p className="text-sm text-sidebar-foreground/80">Verify with confidence.</p></div><div className="flex items-center justify-center bg-background px-5 py-10"><div className="w-full max-w-[440px]"><div className="mb-8 lg:hidden"><BrandMark pageContent /></div><Link href="/" className="focus-ring mb-10 inline-flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-foreground" data-testid="link-auth-home"><ArrowLeft className="h-3.5 w-3.5" /> Back to DepositSafe</Link><div className="rounded-2xl border border-border bg-card p-3 shadow-[0_18px_48px_rgba(0,37,83,.07)] sm:p-5">{isSignIn ? <SignIn appearance={appearance} routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} /> : <SignUp appearance={appearance} routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />}</div><p className="mt-6 text-center text-[.68rem] leading-5 text-muted-foreground">DepositSafe never stores your password.</p></div></div></div>;
 }
 
 export function DashboardPage() {

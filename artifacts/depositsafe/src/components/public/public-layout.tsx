@@ -24,10 +24,10 @@ export function ShieldIcon({ className = 'h-9 w-9' }: { className?: string }) {
   );
 }
 
-export function PublicLogo({ light = false, logoSrc }: { light?: boolean; logoSrc?: string }) {
+export function PublicLogo({ light = false, logoSrc, header = false }: { light?: boolean; logoSrc?: string; header?: boolean }) {
   return (
     <Link href="/" className={`inline-flex shrink-0 flex-col ${light ? 'rounded-lg bg-white px-3 py-2' : ''}`} data-testid="link-public-logo" aria-label="DepositSafe home">
-      <img src={logoSrc ?? `${import.meta.env.BASE_URL}approved-depositsafe-logo.png`} alt="DepositSafe" className="h-9 w-auto mix-blend-multiply" />
+      <img src={logoSrc ?? `${import.meta.env.BASE_URL}approved-depositsafe-logo.png`} alt="DepositSafe" className={`${header ? '-my-2 h-16 xl:-my-3 xl:h-[4.75rem]' : 'h-9'} w-auto mix-blend-multiply`} />
     </Link>
   );
 }
@@ -74,26 +74,26 @@ function PublicHeader({ logoSrc, homepage = false }: { logoSrc?: string; homepag
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [open]);
-  const items = homepage ? [...nav.slice(0, 5), { label: 'Help & FAQs', href: `${base}/help` }] : nav;
-  const link = 'whitespace-nowrap rounded-lg px-2 py-2 text-xs font-semibold text-foreground/75 hover:bg-secondary hover:text-foreground xl:px-3 xl:text-sm';
+  const items = [...nav.slice(0, 5), { label: 'Help & FAQs', href: `${base}/help` }];
+  const link = 'whitespace-nowrap rounded-lg px-2 py-2 text-xs font-semibold text-foreground/75 hover:bg-secondary hover:text-foreground xl:px-2.5 xl:text-[13px] 2xl:px-3 2xl:text-sm';
   return (
-    <header className="sticky top-0 z-40 border-b border-border/80 bg-white/90 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3 lg:px-8">
-        <PublicLogo logoSrc={logoSrc} />
-        <nav className={`hidden items-center gap-1 ${homepage ? 'xl:flex' : 'lg:flex'}`} aria-label="Main">
+    <header className="sticky top-0 z-40 border-b border-border/80 bg-white/95 shadow-[0_1px_0_hsl(var(--primary)/0.12)] backdrop-blur">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2 sm:px-5 xl:px-8 xl:py-3">
+        <PublicLogo header logoSrc={logoSrc} />
+        <nav className={`hidden items-center gap-1 xl:flex`} aria-label="Main">
           {items.map((n) => <a key={n.label} href={n.href} className={link} data-testid={`link-nav-${n.label.toLowerCase().replace(/\W+/g, '-')}`}>{n.label}</a>)}
         </nav>
-        <div className={`hidden items-center gap-2 ${homepage ? 'xl:flex' : 'lg:flex'}`}>
+        <div className={`hidden items-center gap-2 xl:flex`}>
           <HeaderSearch />
           <Link href="/sign-in" className="whitespace-nowrap rounded-full border border-primary px-5 py-2 text-sm font-semibold text-primary hover:bg-secondary" data-testid="link-public-sign-in">Sign in</Link>
           <a href={`${base}/#get-started`} className="whitespace-nowrap rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-sm hover:brightness-110" data-testid="link-public-get-started">Get Started</a>
         </div>
-        <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls="public-mobile-menu" aria-label={open ? 'Close menu' : 'Open menu'} className={`grid h-11 w-11 place-items-center rounded-lg border border-border bg-white ${homepage ? 'xl:hidden' : 'lg:hidden'}`} data-testid="button-public-menu">
+        <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls="public-mobile-menu" aria-label={open ? 'Close menu' : 'Open menu'} className={`grid h-11 w-11 place-items-center rounded-lg border border-border bg-white xl:hidden`} data-testid="button-public-menu">
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
       {open ? (
-        <nav id="public-mobile-menu" aria-label="Mobile" className={`border-t border-border bg-white px-5 pb-5 pt-3 ${homepage ? 'xl:hidden' : 'lg:hidden'}`}>
+        <nav id="public-mobile-menu" aria-label="Mobile" className={`max-h-[calc(100dvh-4.5rem)] overflow-y-auto overscroll-contain border-t border-border bg-white px-5 pb-6 pt-3 shadow-lg xl:hidden`}>
           <div className="flex flex-col">
             {items.map((n) => <a key={n.label} href={n.href} onClick={() => setOpen(false)} className="border-b border-border/60 py-3.5 text-base font-semibold">{n.label}</a>)}
           </div>

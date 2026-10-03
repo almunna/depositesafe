@@ -9,11 +9,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { PublicLayout, usePageMeta } from '@/components/public/public-layout';
+import { PageBrand } from '@/components/page-brand';
 
 function PageHead({ eyebrow, title, intro }: { eyebrow: string; title: string; intro: string }) {
   return (
     <div className="border-b border-border bg-gradient-to-b from-[hsl(210_80%_95%)] to-[hsl(210_60%_98%)]">
       <div className="mx-auto max-w-4xl px-5 py-14 lg:py-20">
+        <PageBrand />
         <p className="text-sm font-bold text-primary">{eyebrow}</p>
         <h1 className="ds-display mt-3 text-4xl font-extrabold text-[hsl(var(--ds-navy))] sm:text-5xl">{title}</h1>
         <p className="mt-4 max-w-2xl text-lg leading-7 text-muted-foreground">{intro}</p>
