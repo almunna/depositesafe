@@ -8,6 +8,8 @@ set -eu
 if [ -z "${DEPOSITSAFE_PUBLIC_ORIGIN:-}" ] && [ -n "${RENDER_EXTERNAL_URL:-}" ]; then
   export DEPOSITSAFE_PUBLIC_ORIGIN="$RENDER_EXTERNAL_URL"
 fi
+# Checkout is refused from any other origin, so make the value in use easy to find.
+echo "Public origin for checkout and webhooks: ${DEPOSITSAFE_PUBLIC_ORIGIN:-not set}"
 
 # On Replit, Publish applies the schema. Here nothing else does, so it happens
 # before the server accepts traffic. If either step fails the container exits,

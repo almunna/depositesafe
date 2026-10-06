@@ -216,7 +216,9 @@ export function TransactionForm({ product, products = [], compact = false }: { p
   const [typedEmail, setEmail] = useState('');
   const email = accountEmail ?? typedEmail;
   const [participantName, setParticipantName] = useState('');
-  const [participantEmail, setParticipantEmail] = useState('');
+  const [typedParticipantEmail, setParticipantEmail] = useState('');
+  // Signed in, the buyer is the first person, so their account email is not asked for again.
+  const participantEmail = accountEmail ?? typedParticipantEmail;
   const [secondParticipantName, setSecondParticipantName] = useState('');
   const [secondParticipantEmail, setSecondParticipantEmail] = useState('');
   const [formError, setFormError] = useState('');
@@ -226,6 +228,7 @@ export function TransactionForm({ product, products = [], compact = false }: { p
     if (isSubmitting) return;
     if (!selectedProduct || !email.trim()) { setFormError('Choose a product and enter your email to continue.'); return; }
     if (selectedProduct.participantMode === 'multiple' && (!participantName.trim() || !participantEmail.trim() || !secondParticipantName.trim() || !secondParticipantEmail.trim())) { setFormError('Add both participants’ names and emails to continue.'); return; }
+    if (selectedProduct.participantMode === 'multiple' && participantEmail.trim().toLowerCase() === secondParticipantEmail.trim().toLowerCase()) { setFormError(accountEmail ? 'The second person needs their own email address, not yours.' : 'Each person needs their own email address.'); return; }
     const input = {
       productSlug: selectedProduct.slug,
       email: email.trim(),
@@ -284,10 +287,10 @@ export function TransactionForm({ product, products = [], compact = false }: { p
       {selectedProduct?.participantMode === 'multiple' ? (
         <div className="space-y-4 rounded-xl border border-border/70 bg-muted/25 p-4">
           <p className="text-xs font-bold text-foreground">Two people, two identity verifications</p>
-          <p className="text-xs leading-5 text-muted-foreground">Each person completes their own identity verification. Use each person’s own name and email address.</p>
+          <p className="text-xs leading-5 text-muted-foreground">{accountEmail ? 'Each person completes their own identity verification. You’re the first person, using your account email, so add the second person’s own name and email address.' : 'Each person completes their own identity verification. Use each person’s own name and email address.'}</p>
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block"><span className="mb-2 block text-xs font-bold text-muted-foreground">First person’s name</span><input required value={participantName} onChange={(event) => setParticipantName(event.target.value)} placeholder="Full name" className="focus-ring w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60" data-testid="input-participant-name" /></label>
-            <label className="block"><span className="mb-2 block text-xs font-bold text-muted-foreground">First person’s email</span><input required type="email" value={participantEmail} onChange={(event) => setParticipantEmail(event.target.value)} placeholder="person@example.com" className="focus-ring w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60" data-testid="input-participant-email" /></label>
+            <label className={`block ${accountEmail ? 'sm:col-span-2' : ''}`}><span className="mb-2 block text-xs font-bold text-muted-foreground">{accountEmail ? 'Your name' : 'First person’s name'}</span><input required value={participantName} onChange={(event) => setParticipantName(event.target.value)} placeholder="Full name" className="focus-ring w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60" data-testid="input-participant-name" /></label>
+            {accountEmail ? null : <label className="block"><span className="mb-2 block text-xs font-bold text-muted-foreground">First person’s email</span><input required type="email" value={participantEmail} onChange={(event) => setParticipantEmail(event.target.value)} placeholder="person@example.com" className="focus-ring w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60" data-testid="input-participant-email" /></label>}
             <label className="block"><span className="mb-2 block text-xs font-bold text-muted-foreground">Second person’s name</span><input required value={secondParticipantName} onChange={(event) => setSecondParticipantName(event.target.value)} placeholder="Full name" className="focus-ring w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60" data-testid="input-second-participant-name" /></label>
             <label className="block"><span className="mb-2 block text-xs font-bold text-muted-foreground">Second person’s email</span><input required type="email" value={secondParticipantEmail} onChange={(event) => setSecondParticipantEmail(event.target.value)} placeholder="person@example.com" className="focus-ring w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60" data-testid="input-second-participant-email" /></label>
           </div>
