@@ -31,12 +31,17 @@ RUN pnpm --filter @workspace/api-server run build
 # Vite inlines VITE_* values into the browser bundle at build time. Render passes
 # the service's environment variables to the build as build args; elsewhere use
 # --build-arg. Only the publishable key is read here, and it is public by design.
+# The browser copy defaults to the server's key, so one variable is enough.
+ARG CLERK_PUBLISHABLE_KEY
 ARG VITE_CLERK_PUBLISHABLE_KEY
 ARG VITE_CLERK_PROXY_URL
-RUN test -n "$VITE_CLERK_PUBLISHABLE_KEY" \
-  || { echo "VITE_CLERK_PUBLISHABLE_KEY must be set as a build arg: sign-in cannot work without it." >&2; exit 1; }
 # vite.config.ts insists on PORT and BASE_PATH even for a build; PORT is unused here.
-RUN PORT=8080 BASE_PATH=/ NODE_ENV=production pnpm --filter @workspace/depositsafe run build
+RUN export VITE_CLERK_PUBLISHABLE_KEY="${VITE_CLERK_PUBLISHABLE_KEY:-${CLERK_PUBLISHABLE_KEY:-}}" \
+  && if [ -z "$VITE_CLERK_PUBLISHABLE_KEY" ]; then \
+       echo "CLERK_PUBLISHABLE_KEY has no value. Set it on the service (Render: Environment) or pass it with --build-arg; sign-in cannot work without it." >&2; \
+       exit 1; \
+     fi \
+  && PORT=8080 BASE_PATH=/ NODE_ENV=production pnpm --filter @workspace/depositsafe run build
 
 
 FROM workspace AS runtime

@@ -34,13 +34,12 @@ services:
           name: depositsafe-db
           property: connectionString
 
-      # Clerk. The VITE_ copy of the publishable key is compiled into the browser
-      # bundle when the image builds, so changing it needs a redeploy.
+      # Clerk. The publishable key is also compiled into the browser bundle when
+      # the image builds, so the build fails without it and changing it needs a
+      # redeploy.
       - key: CLERK_PUBLISHABLE_KEY
         sync: false
       - key: CLERK_SECRET_KEY
-        sync: false
-      - key: VITE_CLERK_PUBLISHABLE_KEY
         sync: false
 
       # Stripe. `test` runs this production runtime against the sandbox and needs
