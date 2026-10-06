@@ -2,8 +2,8 @@ import { createHash } from "node:crypto";
 import Stripe from "stripe";
 import {
   LOCKED_PRODUCTS,
-  STRIPE_ACCOUNTS,
   getStripeContext,
+  stripeAccountId,
   stripeMode,
   type StripeMode,
 } from "@workspace/stripe";
@@ -532,7 +532,7 @@ export async function reconcileStripePaymentEvent(event: Stripe.Event): Promise<
     try {
       const mode = stripeMode();
       if (event.livemode !== (mode === "live")) throw safePaymentEventError();
-      if (event.account && event.account !== STRIPE_ACCOUNTS[mode]) throw safePaymentEventError();
+      if (event.account && event.account !== stripeAccountId(mode)) throw safePaymentEventError();
 
       const handledSessionEvent = [
         "checkout.session.completed",

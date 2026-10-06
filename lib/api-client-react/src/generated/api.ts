@@ -26,11 +26,21 @@ import type {
   ContactMessage,
   ContactMessageInput,
   ContactSubmissionResponse,
+  CredasAdminActionInput,
+  CredasBankAccountInput,
+  CredasCheckState,
+  CredasJourney,
+  CredasJourneyLink,
+  CredasPropertyInput,
+  CredasStartInput,
+  CredasTitleSelectionInput,
+  CredasWebhookEvent,
   DashboardSummary,
   Error,
   HealthStatus,
   Product,
   ProviderWebhookResponse,
+  ReceiveCredasWebhookParams,
   SearchCompaniesHouseCompaniesParams,
   StripeCatalogSyncResponse,
   StripeCheckoutInput,
@@ -947,6 +957,1019 @@ export function useGetCompaniesHouseResult<TData = Awaited<ReturnType<typeof get
 
 
 
+
+export const getGetCredasChecksUrl = (reference: string,) => {
+
+
+
+
+  return `/api/transactions/${reference}/credas`
+}
+
+/**
+ * @summary Get the Credas checks linked to a transaction
+ */
+export const getCredasChecks = async (reference: string, options?: Parameters<typeof customFetch>[1]): Promise<CredasCheckState> => {
+
+  return customFetch<CredasCheckState>(getGetCredasChecksUrl(reference),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCredasChecksQueryKey = (reference: string,) => {
+    return [
+    `/api/transactions/${reference}/credas`
+    ] as const;
+    }
+
+
+export const getGetCredasChecksQueryOptions = <TData = Awaited<ReturnType<typeof getCredasChecks>>, TError = ErrorType<Error>>(reference: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCredasChecks>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCredasChecksQueryKey(reference);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCredasChecks>>> = ({ signal }) => getCredasChecks(reference, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: reference !== null && reference !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCredasChecks>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCredasChecksQueryResult = NonNullable<Awaited<ReturnType<typeof getCredasChecks>>>
+export type GetCredasChecksQueryError = ErrorType<Error>
+
+
+/**
+ * @summary Get the Credas checks linked to a transaction
+ */
+
+export function useGetCredasChecks<TData = Awaited<ReturnType<typeof getCredasChecks>>, TError = ErrorType<Error>>(
+ reference: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCredasChecks>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCredasChecksQueryOptions(reference,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getStartCredasVerificationUrl = (reference: string,) => {
+
+
+
+
+  return `/api/transactions/${reference}/credas/start`
+}
+
+/**
+ * Requires a confirmed payment. Creates one Credas process per person and sends each their invitation.
+ * @summary Invite the people being verified to their Credas journey
+ */
+export const startCredasVerification = async (reference: string,
+    credasStartInput: CredasStartInput, options?: Parameters<typeof customFetch>[1]): Promise<CredasCheckState> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CredasCheckState>(getStartCredasVerificationUrl(reference),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(credasStartInput)
+  }
+);}
+
+
+
+
+
+export const getStartCredasVerificationMutationKey = () => ['startCredasVerification'] as const;
+
+export const getStartCredasVerificationMutationOptions = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startCredasVerification>>, TError,StartCredasVerificationMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof startCredasVerification>>, TError,StartCredasVerificationMutationVariables, TContext> => {
+
+const mutationKey = getStartCredasVerificationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startCredasVerification>>, StartCredasVerificationMutationVariables> = (props) => {
+          const {reference,data} = props ?? {};
+
+          return  startCredasVerification(reference,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartCredasVerificationMutationResult = NonNullable<Awaited<ReturnType<typeof startCredasVerification>>>
+    export type StartCredasVerificationMutationBody = BodyType<CredasStartInput>
+    export type StartCredasVerificationMutationError = ErrorType<Error>
+    export type StartCredasVerificationMutationVariables = {reference: string;data: BodyType<CredasStartInput>}
+
+    /**
+ * @summary Invite the people being verified to their Credas journey
+ */
+export const useStartCredasVerification = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startCredasVerification>>, TError,StartCredasVerificationMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof startCredasVerification>>,
+        TError,
+        StartCredasVerificationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getStartCredasVerificationMutationOptions(options));
+    }
+
+export const getRunCredasBankAccountCheckUrl = (reference: string,) => {
+
+
+
+
+  return `/api/transactions/${reference}/credas/bank-account`
+}
+
+/**
+ * Requires a confirmed payment. Account details are sent to Credas server-side and are not stored in full.
+ * @summary Run the bank account check for a transaction
+ */
+export const runCredasBankAccountCheck = async (reference: string,
+    credasBankAccountInput: CredasBankAccountInput, options?: Parameters<typeof customFetch>[1]): Promise<CredasCheckState> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CredasCheckState>(getRunCredasBankAccountCheckUrl(reference),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(credasBankAccountInput)
+  }
+);}
+
+
+
+
+
+export const getRunCredasBankAccountCheckMutationKey = () => ['runCredasBankAccountCheck'] as const;
+
+export const getRunCredasBankAccountCheckMutationOptions = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runCredasBankAccountCheck>>, TError,RunCredasBankAccountCheckMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof runCredasBankAccountCheck>>, TError,RunCredasBankAccountCheckMutationVariables, TContext> => {
+
+const mutationKey = getRunCredasBankAccountCheckMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runCredasBankAccountCheck>>, RunCredasBankAccountCheckMutationVariables> = (props) => {
+          const {reference,data} = props ?? {};
+
+          return  runCredasBankAccountCheck(reference,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RunCredasBankAccountCheckMutationResult = NonNullable<Awaited<ReturnType<typeof runCredasBankAccountCheck>>>
+    export type RunCredasBankAccountCheckMutationBody = BodyType<CredasBankAccountInput>
+    export type RunCredasBankAccountCheckMutationError = ErrorType<Error>
+    export type RunCredasBankAccountCheckMutationVariables = {reference: string;data: BodyType<CredasBankAccountInput>}
+
+    /**
+ * @summary Run the bank account check for a transaction
+ */
+export const useRunCredasBankAccountCheck = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runCredasBankAccountCheck>>, TError,RunCredasBankAccountCheckMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof runCredasBankAccountCheck>>,
+        TError,
+        RunCredasBankAccountCheckMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRunCredasBankAccountCheckMutationOptions(options));
+    }
+
+export const getRunCredasPropertyCheckUrl = (reference: string,) => {
+
+
+
+
+  return `/api/transactions/${reference}/credas/property`
+}
+
+/**
+ * @summary Run the property ownership check for a transaction
+ */
+export const runCredasPropertyCheck = async (reference: string,
+    credasPropertyInput: CredasPropertyInput, options?: Parameters<typeof customFetch>[1]): Promise<CredasCheckState> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CredasCheckState>(getRunCredasPropertyCheckUrl(reference),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(credasPropertyInput)
+  }
+);}
+
+
+
+
+
+export const getRunCredasPropertyCheckMutationKey = () => ['runCredasPropertyCheck'] as const;
+
+export const getRunCredasPropertyCheckMutationOptions = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runCredasPropertyCheck>>, TError,RunCredasPropertyCheckMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof runCredasPropertyCheck>>, TError,RunCredasPropertyCheckMutationVariables, TContext> => {
+
+const mutationKey = getRunCredasPropertyCheckMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runCredasPropertyCheck>>, RunCredasPropertyCheckMutationVariables> = (props) => {
+          const {reference,data} = props ?? {};
+
+          return  runCredasPropertyCheck(reference,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RunCredasPropertyCheckMutationResult = NonNullable<Awaited<ReturnType<typeof runCredasPropertyCheck>>>
+    export type RunCredasPropertyCheckMutationBody = BodyType<CredasPropertyInput>
+    export type RunCredasPropertyCheckMutationError = ErrorType<Error>
+    export type RunCredasPropertyCheckMutationVariables = {reference: string;data: BodyType<CredasPropertyInput>}
+
+    /**
+ * @summary Run the property ownership check for a transaction
+ */
+export const useRunCredasPropertyCheck = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runCredasPropertyCheck>>, TError,RunCredasPropertyCheckMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof runCredasPropertyCheck>>,
+        TError,
+        RunCredasPropertyCheckMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRunCredasPropertyCheckMutationOptions(options));
+    }
+
+export const getSelectCredasPropertyTitleUrl = (reference: string,) => {
+
+
+
+
+  return `/api/transactions/${reference}/credas/property/title`
+}
+
+/**
+ * @summary Choose which registered title to retrieve when an address matches several
+ */
+export const selectCredasPropertyTitle = async (reference: string,
+    credasTitleSelectionInput: CredasTitleSelectionInput, options?: Parameters<typeof customFetch>[1]): Promise<CredasCheckState> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CredasCheckState>(getSelectCredasPropertyTitleUrl(reference),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(credasTitleSelectionInput)
+  }
+);}
+
+
+
+
+
+export const getSelectCredasPropertyTitleMutationKey = () => ['selectCredasPropertyTitle'] as const;
+
+export const getSelectCredasPropertyTitleMutationOptions = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof selectCredasPropertyTitle>>, TError,SelectCredasPropertyTitleMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof selectCredasPropertyTitle>>, TError,SelectCredasPropertyTitleMutationVariables, TContext> => {
+
+const mutationKey = getSelectCredasPropertyTitleMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof selectCredasPropertyTitle>>, SelectCredasPropertyTitleMutationVariables> = (props) => {
+          const {reference,data} = props ?? {};
+
+          return  selectCredasPropertyTitle(reference,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SelectCredasPropertyTitleMutationResult = NonNullable<Awaited<ReturnType<typeof selectCredasPropertyTitle>>>
+    export type SelectCredasPropertyTitleMutationBody = BodyType<CredasTitleSelectionInput>
+    export type SelectCredasPropertyTitleMutationError = ErrorType<Error>
+    export type SelectCredasPropertyTitleMutationVariables = {reference: string;data: BodyType<CredasTitleSelectionInput>}
+
+    /**
+ * @summary Choose which registered title to retrieve when an address matches several
+ */
+export const useSelectCredasPropertyTitle = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof selectCredasPropertyTitle>>, TError,SelectCredasPropertyTitleMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof selectCredasPropertyTitle>>,
+        TError,
+        SelectCredasPropertyTitleMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSelectCredasPropertyTitleMutationOptions(options));
+    }
+
+export const getRefreshCredasChecksUrl = (reference: string,) => {
+
+
+
+
+  return `/api/transactions/${reference}/credas/refresh`
+}
+
+/**
+ * @summary Re-read open Credas checks from the provider
+ */
+export const refreshCredasChecks = async (reference: string, options?: Parameters<typeof customFetch>[1]): Promise<CredasCheckState> => {
+
+  return customFetch<CredasCheckState>(getRefreshCredasChecksUrl(reference),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getRefreshCredasChecksMutationKey = () => ['refreshCredasChecks'] as const;
+
+export const getRefreshCredasChecksMutationOptions = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refreshCredasChecks>>, TError,RefreshCredasChecksMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof refreshCredasChecks>>, TError,RefreshCredasChecksMutationVariables, TContext> => {
+
+const mutationKey = getRefreshCredasChecksMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof refreshCredasChecks>>, RefreshCredasChecksMutationVariables> = (props) => {
+          const {reference} = props ?? {};
+
+          return  refreshCredasChecks(reference,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RefreshCredasChecksMutationResult = NonNullable<Awaited<ReturnType<typeof refreshCredasChecks>>>
+
+    export type RefreshCredasChecksMutationError = ErrorType<Error>
+    export type RefreshCredasChecksMutationVariables = {reference: string}
+
+    /**
+ * @summary Re-read open Credas checks from the provider
+ */
+export const useRefreshCredasChecks = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refreshCredasChecks>>, TError,RefreshCredasChecksMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof refreshCredasChecks>>,
+        TError,
+        RefreshCredasChecksMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRefreshCredasChecksMutationOptions(options));
+    }
+
+export const getResendCredasInviteUrl = (reference: string,
+    checkId: string,) => {
+
+
+
+
+  return `/api/transactions/${reference}/credas/checks/${checkId}/resend-invite`
+}
+
+/**
+ * @summary Send the invited person their Credas invitation again
+ */
+export const resendCredasInvite = async (reference: string,
+    checkId: string, options?: Parameters<typeof customFetch>[1]): Promise<CredasCheckState> => {
+
+  return customFetch<CredasCheckState>(getResendCredasInviteUrl(reference,checkId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getResendCredasInviteMutationKey = () => ['resendCredasInvite'] as const;
+
+export const getResendCredasInviteMutationOptions = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resendCredasInvite>>, TError,ResendCredasInviteMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof resendCredasInvite>>, TError,ResendCredasInviteMutationVariables, TContext> => {
+
+const mutationKey = getResendCredasInviteMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof resendCredasInvite>>, ResendCredasInviteMutationVariables> = (props) => {
+          const {reference,checkId} = props ?? {};
+
+          return  resendCredasInvite(reference,checkId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ResendCredasInviteMutationResult = NonNullable<Awaited<ReturnType<typeof resendCredasInvite>>>
+
+    export type ResendCredasInviteMutationError = ErrorType<Error>
+    export type ResendCredasInviteMutationVariables = {reference: string;checkId: string}
+
+    /**
+ * @summary Send the invited person their Credas invitation again
+ */
+export const useResendCredasInvite = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resendCredasInvite>>, TError,ResendCredasInviteMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof resendCredasInvite>>,
+        TError,
+        ResendCredasInviteMutationVariables,
+        TContext
+      > => {
+      return useMutation(getResendCredasInviteMutationOptions(options));
+    }
+
+export const getCreateCredasJourneyLinkUrl = (reference: string,
+    checkId: string,) => {
+
+
+
+
+  return `/api/transactions/${reference}/credas/checks/${checkId}/journey-link`
+}
+
+/**
+ * Issued only when the person being verified is the transaction owner. The link signs that person in to their journey.
+ * @summary Create a short-lived link for completing your own verification
+ */
+export const createCredasJourneyLink = async (reference: string,
+    checkId: string, options?: Parameters<typeof customFetch>[1]): Promise<CredasJourneyLink> => {
+
+  return customFetch<CredasJourneyLink>(getCreateCredasJourneyLinkUrl(reference,checkId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getCreateCredasJourneyLinkMutationKey = () => ['createCredasJourneyLink'] as const;
+
+export const getCreateCredasJourneyLinkMutationOptions = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCredasJourneyLink>>, TError,CreateCredasJourneyLinkMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCredasJourneyLink>>, TError,CreateCredasJourneyLinkMutationVariables, TContext> => {
+
+const mutationKey = getCreateCredasJourneyLinkMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCredasJourneyLink>>, CreateCredasJourneyLinkMutationVariables> = (props) => {
+          const {reference,checkId} = props ?? {};
+
+          return  createCredasJourneyLink(reference,checkId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCredasJourneyLinkMutationResult = NonNullable<Awaited<ReturnType<typeof createCredasJourneyLink>>>
+
+    export type CreateCredasJourneyLinkMutationError = ErrorType<Error>
+    export type CreateCredasJourneyLinkMutationVariables = {reference: string;checkId: string}
+
+    /**
+ * @summary Create a short-lived link for completing your own verification
+ */
+export const useCreateCredasJourneyLink = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCredasJourneyLink>>, TError,CreateCredasJourneyLinkMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createCredasJourneyLink>>,
+        TError,
+        CreateCredasJourneyLinkMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateCredasJourneyLinkMutationOptions(options));
+    }
+
+export const getDownloadCredasDocumentUrl = (reference: string,
+    checkId: string,
+    documentId: string,) => {
+
+
+
+
+  return `/api/transactions/${reference}/credas/checks/${checkId}/documents/${documentId}`
+}
+
+/**
+ * @summary Download a PDF document for a completed Credas check
+ */
+export const downloadCredasDocument = async (reference: string,
+    checkId: string,
+    documentId: string, options?: Parameters<typeof customFetch>[1]): Promise<Blob> => {
+
+  return customFetch<Blob>(getDownloadCredasDocumentUrl(reference,checkId,documentId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadCredasDocumentQueryKey = (reference: string,
+    checkId: string,
+    documentId: string,) => {
+    return [
+    `/api/transactions/${reference}/credas/checks/${checkId}/documents/${documentId}`
+    ] as const;
+    }
+
+
+export const getDownloadCredasDocumentQueryOptions = <TData = Awaited<ReturnType<typeof downloadCredasDocument>>, TError = ErrorType<Error>>(reference: string,
+    checkId: string,
+    documentId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadCredasDocument>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadCredasDocumentQueryKey(reference,checkId,documentId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadCredasDocument>>> = ({ signal }) => downloadCredasDocument(reference,checkId,documentId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: reference !== null && reference !== undefined && checkId !== null && checkId !== undefined && documentId !== null && documentId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadCredasDocument>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type DownloadCredasDocumentQueryResult = NonNullable<Awaited<ReturnType<typeof downloadCredasDocument>>>
+export type DownloadCredasDocumentQueryError = ErrorType<Error>
+
+
+/**
+ * @summary Download a PDF document for a completed Credas check
+ */
+
+export function useDownloadCredasDocument<TData = Awaited<ReturnType<typeof downloadCredasDocument>>, TError = ErrorType<Error>>(
+ reference: string,
+    checkId: string,
+    documentId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadCredasDocument>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getDownloadCredasDocumentQueryOptions(reference,checkId,documentId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListCredasJourneysUrl = () => {
+
+
+
+
+  return `/api/admin/credas/journeys`
+}
+
+/**
+ * @summary List the Credas journeys and actors available to the configured API key
+ */
+export const listCredasJourneys = async ( options?: Parameters<typeof customFetch>[1]): Promise<CredasJourney[]> => {
+
+  return customFetch<CredasJourney[]>(getListCredasJourneysUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCredasJourneysQueryKey = () => {
+    return [
+    `/api/admin/credas/journeys`
+    ] as const;
+    }
+
+
+export const getListCredasJourneysQueryOptions = <TData = Awaited<ReturnType<typeof listCredasJourneys>>, TError = ErrorType<Error>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCredasJourneys>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCredasJourneysQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCredasJourneys>>> = ({ signal }) => listCredasJourneys({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCredasJourneys>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListCredasJourneysQueryResult = NonNullable<Awaited<ReturnType<typeof listCredasJourneys>>>
+export type ListCredasJourneysQueryError = ErrorType<Error>
+
+
+/**
+ * @summary List the Credas journeys and actors available to the configured API key
+ */
+
+export function useListCredasJourneys<TData = Awaited<ReturnType<typeof listCredasJourneys>>, TError = ErrorType<Error>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCredasJourneys>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListCredasJourneysQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRunCredasAdminActionUrl = (checkId: string,) => {
+
+
+
+
+  return `/api/admin/credas/checks/${checkId}/actions`
+}
+
+/**
+ * Invite management, Right to Rent remediation and data erasure. Requires an explicit administrator role; every action is audited.
+ * @summary Run a staff action against a Credas check
+ */
+export const runCredasAdminAction = async (checkId: string,
+    credasAdminActionInput: CredasAdminActionInput, options?: Parameters<typeof customFetch>[1]): Promise<CredasCheckState> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CredasCheckState>(getRunCredasAdminActionUrl(checkId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(credasAdminActionInput)
+  }
+);}
+
+
+
+
+
+export const getRunCredasAdminActionMutationKey = () => ['runCredasAdminAction'] as const;
+
+export const getRunCredasAdminActionMutationOptions = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runCredasAdminAction>>, TError,RunCredasAdminActionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof runCredasAdminAction>>, TError,RunCredasAdminActionMutationVariables, TContext> => {
+
+const mutationKey = getRunCredasAdminActionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runCredasAdminAction>>, RunCredasAdminActionMutationVariables> = (props) => {
+          const {checkId,data} = props ?? {};
+
+          return  runCredasAdminAction(checkId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RunCredasAdminActionMutationResult = NonNullable<Awaited<ReturnType<typeof runCredasAdminAction>>>
+    export type RunCredasAdminActionMutationBody = BodyType<CredasAdminActionInput>
+    export type RunCredasAdminActionMutationError = ErrorType<Error>
+    export type RunCredasAdminActionMutationVariables = {checkId: string;data: BodyType<CredasAdminActionInput>}
+
+    /**
+ * @summary Run a staff action against a Credas check
+ */
+export const useRunCredasAdminAction = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runCredasAdminAction>>, TError,RunCredasAdminActionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof runCredasAdminAction>>,
+        TError,
+        RunCredasAdminActionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRunCredasAdminActionMutationOptions(options));
+    }
+
+export const getReceiveCredasWebhookUrl = (params: ReceiveCredasWebhookParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/webhooks/credas?${stringifiedParams}` : `/api/webhooks/credas`
+}
+
+/**
+ * Credas webhooks are unsigned. The secret token identifies the check, and the status and result are then read back from Credas server-side; the body is never trusted.
+ * @summary Receive a Credas process-complete notification
+ */
+export const receiveCredasWebhook = async (credasWebhookEvent: CredasWebhookEvent,
+    params: ReceiveCredasWebhookParams, options?: Parameters<typeof customFetch>[1]): Promise<WebhookAccepted> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<WebhookAccepted>(getReceiveCredasWebhookUrl(params),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(credasWebhookEvent)
+  }
+);}
+
+
+
+
+
+export const getReceiveCredasWebhookMutationKey = () => ['receiveCredasWebhook'] as const;
+
+export const getReceiveCredasWebhookMutationOptions = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof receiveCredasWebhook>>, TError,ReceiveCredasWebhookMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof receiveCredasWebhook>>, TError,ReceiveCredasWebhookMutationVariables, TContext> => {
+
+const mutationKey = getReceiveCredasWebhookMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof receiveCredasWebhook>>, ReceiveCredasWebhookMutationVariables> = (props) => {
+          const {data,params} = props ?? {};
+
+          return  receiveCredasWebhook(data,params,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReceiveCredasWebhookMutationResult = NonNullable<Awaited<ReturnType<typeof receiveCredasWebhook>>>
+    export type ReceiveCredasWebhookMutationBody = BodyType<CredasWebhookEvent>
+    export type ReceiveCredasWebhookMutationError = ErrorType<Error>
+    export type ReceiveCredasWebhookMutationVariables = {data: BodyType<CredasWebhookEvent>;params: ReceiveCredasWebhookParams}
+
+    /**
+ * @summary Receive a Credas process-complete notification
+ */
+export const useReceiveCredasWebhook = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof receiveCredasWebhook>>, TError,ReceiveCredasWebhookMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof receiveCredasWebhook>>,
+        TError,
+        ReceiveCredasWebhookMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReceiveCredasWebhookMutationOptions(options));
+    }
 
 export const getCreateStripeCheckoutSessionUrl = (reference: string,) => {
 

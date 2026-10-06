@@ -100,7 +100,7 @@ function attachGuestCapability(headers: Headers, input: RequestInfo | URL, metho
     return;
   }
   const match =
-    pathname.match(/\/transactions\/([^/]+)\/(?:payments|companies-house)(?:\/|$)/) ??
+    pathname.match(/\/transactions\/([^/]+)\/(?:payments|companies-house|credas)(?:\/|$)/) ??
     (method === "GET" ? pathname.match(/\/transactions\/([^/]+)\/?$/) : null);
   if (!match) return;
   try {

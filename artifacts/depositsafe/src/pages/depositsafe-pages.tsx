@@ -31,6 +31,7 @@ import {
 } from '@/components/depositsafe';
 import { PaymentPanel, type PaymentReturnState } from '@/components/payment-panel';
 import { CompanyCheckPanel } from '@/components/company-check-panel';
+import { CredasCheckPanel } from '@/components/credas-check-panel';
 import { CompanyCheckProgress } from '@/components/company-check-progress';
 import { PublicLayout, usePageMeta } from '@/components/public/public-layout';
 import { getProductCopy } from '@/lib/product-copy';
@@ -190,8 +191,14 @@ export function TransactionDetailPage() {
   if (transaction.isError || !transaction.data) return <AppShell active="transactions"><QueryError message="We could not load this check record." onRetry={() => void transaction.refetch()} /><p className="mt-4 text-sm text-muted-foreground">For an account check, <Link href="/sign-in" className="font-bold text-primary underline">sign in</Link>. For a guest check, use its original browser tab; the reference alone does not restore access. If you need help, <Link href="/help" className="font-bold text-primary underline">contact support</Link> and include your reference.</p></AppShell>;
   const item = transaction.data;
   const isCompanyCheck = item.product.slug === 'company-check';
+  const isCredasCheck = item.product.provider === 'Credas';
   const stageStatuses: readonly string[] = ['STARTED', 'PAYMENT_PENDING', 'PAID', 'VERIFICATION_IN_PROGRESS', 'VERIFICATION_COMPLETED', 'DELIVERED'];
-  const currentIndex = Math.max(stageStatuses.indexOf(item.status), 0);
+  // Statuses outside the six-step path sit on the step they belong to.
+  const stageStatus = item.status === 'RESULT_GENERATED' ? 'VERIFICATION_COMPLETED'
+    : ['AWAITING_PARTICIPANT', 'VERIFICATION_PENDING', 'MANUAL_ATTENTION'].includes(item.status) ? 'VERIFICATION_IN_PROGRESS'
+    : ['VERIFICATION_FAILED', 'EXPIRED'].includes(item.status) && isCredasCheck ? 'PAID'
+    : item.status;
+  const currentIndex = Math.max(stageStatuses.indexOf(stageStatus), 0);
   const stageTitle = (status: string) => {
     return status === 'STARTED' ? 'Transaction started' : status === 'PAYMENT_PENDING' ? 'Payment pending' : status === 'PAID' ? 'Payment confirmed' : status === 'VERIFICATION_IN_PROGRESS' ? 'Verification in progress' : status === 'VERIFICATION_COMPLETED' ? 'Verification completed' : 'Result delivered';
   };
@@ -235,6 +242,7 @@ export function TransactionDetailPage() {
           </aside>
         </div>
         {isCompanyCheck ? <div className="mt-8"><CompanyCheckPanel reference={item.reference} status={item.status} onTransactionRefresh={refreshTransaction} /></div> : null}
+        {isCredasCheck ? <div className="mt-8"><CredasCheckPanel transaction={item} onTransactionRefresh={refreshTransaction} /></div> : null}
       </div>
     </AppShell>
   );

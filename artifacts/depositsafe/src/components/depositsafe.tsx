@@ -23,6 +23,7 @@ import {
 } from '@/components/payment-panel';
 import { getProductCopy } from '@/lib/product-copy';
 import { PageBrand } from '@/components/page-brand';
+import { useAccount } from '@/hooks/use-account';
 
 const statusLabels: Record<TransactionStatus, string> = {
   STARTED: 'Started',
@@ -135,6 +136,7 @@ export function PublicHeader() {
 export function AppShell({ children, active = 'dashboard', title, companyCheck = false }: { children: React.ReactNode; active?: 'dashboard' | 'transactions' | 'admin'; title?: string; companyCheck?: boolean }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [location] = useLocation();
+  const { isSignedIn, signOut } = useAccount();
   const currentUser = useGetCurrentUser({ query: { queryKey: getGetCurrentUserQueryKey(), staleTime: 60000, retry: false } });
   const health = useHealthCheck({ query: { queryKey: getHealthCheckQueryKey(), staleTime: 30000 } });
   const userLabel = currentUser.data?.displayName ?? 'Customer account';
@@ -166,7 +168,9 @@ export function AppShell({ children, active = 'dashboard', title, companyCheck =
           <div className="hidden md:block"><p className="eyebrow text-muted-foreground">{title ?? 'Customer workspace'}</p><p className="mt-1 text-sm font-semibold">{userLabel}</p></div>
           <div className="ml-auto flex items-center gap-3">
             <span className="hidden items-center gap-2 text-xs font-semibold text-muted-foreground sm:inline-flex"><span className={`status-dot ${health.isError ? 'text-destructive' : 'text-primary'}`} /> {health.isError ? 'Service check failed' : 'Your check records'}</span>
-            <Link href="/sign-in" className="focus-ring rounded-lg border border-border bg-card px-3 py-2 text-xs font-bold hover:bg-muted" data-testid="link-account">Account</Link>
+            {isSignedIn
+              ? <button type="button" onClick={() => void signOut()} className="focus-ring rounded-lg border border-border bg-card px-3 py-2 text-xs font-bold hover:bg-muted" data-testid="button-sign-out">Sign out</button>
+              : <Link href="/sign-in" className="focus-ring rounded-lg border border-border bg-card px-3 py-2 text-xs font-bold hover:bg-muted" data-testid="link-account">Sign in</Link>}
           </div>
         </header>
         <div className="mx-auto max-w-7xl px-5 py-8 lg:px-10 lg:py-10">{active !== 'admin' ? <PageBrand /> : null}{children}</div>
@@ -208,7 +212,9 @@ export function TransactionForm({ product, products = [], compact = false }: { p
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedSlug, setSelectedSlug] = useState(product?.slug ?? products[0]?.slug ?? '');
   const selectedProduct = product ?? products.find((item) => item.slug === selectedSlug);
-  const [email, setEmail] = useState('');
+  const { email: accountEmail } = useAccount();
+  const [typedEmail, setEmail] = useState('');
+  const email = accountEmail ?? typedEmail;
   const [participantName, setParticipantName] = useState('');
   const [participantEmail, setParticipantEmail] = useState('');
   const [secondParticipantName, setSecondParticipantName] = useState('');
@@ -274,7 +280,7 @@ export function TransactionForm({ product, products = [], compact = false }: { p
   return (
     <form onSubmit={submit} className={`space-y-4 ${compact ? '' : 'mt-6'}`} data-testid="form-create-transaction">
       {!product ? <label className="block"><span className="mb-2 block text-xs font-bold text-muted-foreground">Choose a DepositSafe check</span><div className="relative"><select value={selectedSlug} onChange={(event) => setSelectedSlug(event.target.value)} className="focus-ring w-full appearance-none rounded-xl border border-input bg-background px-4 py-3 text-sm font-semibold" data-testid="select-product"><option value="">Select a check</option>{products.map((item) => <option key={item.slug} value={item.slug}>{item.name} · {item.price}</option>)}</select><ChevronDown className="pointer-events-none absolute right-3 top-3.5 h-4 w-4 text-muted-foreground" /></div></label> : null}
-      <label className="block"><span className="mb-2 block text-xs font-bold text-muted-foreground">Your email address</span><input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" className="focus-ring w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60" data-testid="input-transaction-email" /></label>
+      {accountEmail ? <div data-testid="text-account-email"><span className="mb-2 block text-xs font-bold text-muted-foreground">Your email address</span><p className="break-all rounded-xl border border-input bg-muted/40 px-4 py-3 text-sm font-semibold">{accountEmail}</p><p className="mt-2 text-xs text-muted-foreground">You’re signed in, so this check uses your account email.</p></div> : <label className="block"><span className="mb-2 block text-xs font-bold text-muted-foreground">Your email address</span><input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" className="focus-ring w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60" data-testid="input-transaction-email" /></label>}
       {selectedProduct?.participantMode === 'multiple' ? (
         <div className="space-y-4 rounded-xl border border-border/70 bg-muted/25 p-4">
           <p className="text-xs font-bold text-foreground">Two people, two identity verifications</p>

@@ -135,6 +135,359 @@ export interface CompanyCheckResult {
   checkedAt: string;
 }
 
+export interface CredasParticipantInput {
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  firstName: string;
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  surname: string;
+  /**
+     * @minLength 3
+     * @maxLength 254
+     */
+  email: string;
+}
+
+export interface CredasStartInput {
+  /**
+     * @minItems 1
+     * @maxItems 2
+     */
+  participants: CredasParticipantInput[];
+}
+
+export interface CredasBankAccountInput {
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  firstName: string;
+  /** @maxLength 100 */
+  middleNames?: string;
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  surname: string;
+  /**
+     * Optional, YYYY-MM-DD.
+     * @maxLength 10
+     */
+  dateOfBirth?: string;
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  addressLine1: string;
+  /** @maxLength 100 */
+  addressLine2?: string;
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  city: string;
+  /** @maxLength 100 */
+  county?: string;
+  /**
+     * @minLength 5
+     * @maxLength 8
+     */
+  postcode: string;
+  /**
+     * @minLength 6
+     * @maxLength 8
+     */
+  sortCode: string;
+  /**
+     * @minLength 8
+     * @maxLength 10
+     */
+  accountNumber: string;
+}
+
+export interface CredasPropertyInput {
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  firstName: string;
+  /** @maxLength 100 */
+  middleName?: string;
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  surname: string;
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  addressLine1: string;
+  /** @maxLength 100 */
+  addressLine2?: string;
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  city: string;
+  /**
+     * @minLength 5
+     * @maxLength 8
+     */
+  postcode: string;
+}
+
+export interface CredasTitleSelectionInput {
+  /**
+     * @minLength 1
+     * @maxLength 20
+     */
+  titleNumber: string;
+}
+
+export type CredasAdminActionInputAction = typeof CredasAdminActionInputAction[keyof typeof CredasAdminActionInputAction];
+
+
+export const CredasAdminActionInputAction = {
+  refresh: 'refresh',
+  'new-invite': 'new-invite',
+  'expire-invite': 'expire-invite',
+  'reinvite-idv': 'reinvite-idv',
+  'set-right-to-rent-outcome': 'set-right-to-rent-outcome',
+  'delete-process': 'delete-process',
+  'hard-delete-entity': 'hard-delete-entity',
+} as const;
+
+export type CredasAdminActionInputOutcome = typeof CredasAdminActionInputOutcome[keyof typeof CredasAdminActionInputOutcome];
+
+
+export const CredasAdminActionInputOutcome = {
+  pass: 'pass',
+  fail: 'fail',
+  refer: 'refer',
+} as const;
+
+export interface CredasAdminActionInput {
+  action: CredasAdminActionInputAction;
+  outcome?: CredasAdminActionInputOutcome;
+  /** @maxLength 500 */
+  comments?: string;
+}
+
+export interface CredasWebhookEvent {
+  ProcessId?: string;
+  ClientId?: string;
+  Status?: number;
+  StatusDescription?: string;
+  [key: string]: unknown;
+ }
+
+export type CredasJourneyActorsItem = {
+  id: number;
+  title?: string | null;
+  isClient: boolean;
+};
+
+export interface CredasJourney {
+  id: string;
+  title?: string | null;
+  isActive: boolean;
+  isRightToRent: boolean;
+  webhookEnabled: boolean;
+  actors: CredasJourneyActorsItem[];
+}
+
+export interface CredasJourneyLink {
+  url: string;
+  expiresAt: string;
+}
+
+export type CredasOutcome = typeof CredasOutcome[keyof typeof CredasOutcome];
+
+
+export const CredasOutcome = {
+  pass: 'pass',
+  refer: 'refer',
+  fail: 'fail',
+} as const;
+
+export type CredasComponentResult = typeof CredasComponentResult[keyof typeof CredasComponentResult];
+
+
+export const CredasComponentResult = {
+  pass: 'pass',
+  refer: 'refer',
+  fail: 'fail',
+  action_required: 'action_required',
+  not_performed: 'not_performed',
+} as const;
+
+export type CredasMatch = typeof CredasMatch[keyof typeof CredasMatch];
+
+
+export const CredasMatch = {
+  no_match: 'no_match',
+  match: 'match',
+  partial_match: 'partial_match',
+  not_checked: 'not_checked',
+} as const;
+
+export type CredasCheckKind = typeof CredasCheckKind[keyof typeof CredasCheckKind];
+
+
+export const CredasCheckKind = {
+  identity: 'identity',
+  right_to_rent: 'right_to_rent',
+  bank_account: 'bank_account',
+  property_ownership: 'property_ownership',
+} as const;
+
+export interface CredasDocument {
+  id: string;
+  label: string;
+}
+
+export interface CredasIdentityResult {
+  overall: CredasComponentResult;
+  liveness: CredasComponentResult;
+  document: CredasComponentResult;
+  faceMatch: CredasComponentResult;
+  nameMatch: CredasComponentResult;
+  documentType?: string;
+}
+
+export type CredasRightToRentResultShareCode = {
+  valid: boolean;
+  faceMatch: boolean;
+  nameMatch: boolean;
+  hasCertificate: boolean;
+};
+
+export interface CredasRightToRentResult {
+  statusLabel: string;
+  shareCodeUsed: boolean;
+  shareCode?: CredasRightToRentResultShareCode;
+}
+
+export type CredasBankAccountResultRemarksItemType = typeof CredasBankAccountResultRemarksItemType[keyof typeof CredasBankAccountResultRemarksItemType];
+
+
+export const CredasBankAccountResultRemarksItemType = {
+  comment: 'comment',
+  match: 'match',
+  warning: 'warning',
+  mismatch: 'mismatch',
+} as const;
+
+export type CredasBankAccountResultRemarksItem = {
+  type: CredasBankAccountResultRemarksItemType;
+  description: string;
+};
+
+export interface CredasBankAccountResult {
+  accountHolder: string;
+  sortCode: string;
+  accountNumberEnding: string;
+  resultText?: string;
+  remarks: CredasBankAccountResultRemarksItem[];
+}
+
+export interface CredasTitleOption {
+  titleNumber: string;
+  tenure?: string;
+  address?: string;
+  match: CredasMatch;
+}
+
+export type CredasPropertyResultMatchesItemOwnership = typeof CredasPropertyResultMatchesItemOwnership[keyof typeof CredasPropertyResultMatchesItemOwnership];
+
+
+export const CredasPropertyResultMatchesItemOwnership = {
+  sole: 'sole',
+  joint: 'joint',
+  unknown: 'unknown',
+} as const;
+
+export type CredasPropertyResultMatchesItem = {
+  titleNumber?: string;
+  address?: string;
+  overallMatch: CredasMatch;
+  firstNameMatch: CredasMatch;
+  surnameMatch: CredasMatch;
+  ownership: CredasPropertyResultMatchesItemOwnership;
+  tenure?: string;
+  historical: boolean;
+};
+
+export interface CredasPropertyResult {
+  ownerName: string;
+  address: string;
+  statusLabel: string;
+  titlesFound: number;
+  matches: CredasPropertyResultMatchesItem[];
+}
+
+export type CredasCheckStateProperty = typeof CredasCheckStateProperty[keyof typeof CredasCheckStateProperty];
+
+
+export const CredasCheckStateProperty = {
+  awaiting_participant: 'awaiting_participant',
+  in_progress: 'in_progress',
+  awaiting_title_selection: 'awaiting_title_selection',
+  pending: 'pending',
+  manual_review: 'manual_review',
+  completed: 'completed',
+  failed: 'failed',
+  expired: 'expired',
+} as const;
+
+export interface CredasCheck {
+  id: string;
+  kind: CredasCheckKind;
+  state: CredasCheckStateProperty;
+  outcome?: CredasOutcome;
+  participantName?: string;
+  participantEmail?: string;
+  canResendInvite: boolean;
+  canCompleteHere: boolean;
+  documents: CredasDocument[];
+  message?: string;
+  identity?: CredasIdentityResult;
+  rightToRent?: CredasRightToRentResult;
+  bankAccount?: CredasBankAccountResult;
+  property?: CredasPropertyResult;
+  titleOptions?: CredasTitleOption[];
+  checkedAt?: string;
+}
+
+export type CredasCheckStateActionsItem = typeof CredasCheckStateActionsItem[keyof typeof CredasCheckStateActionsItem];
+
+
+export const CredasCheckStateActionsItem = {
+  start: 'start',
+  'bank-account': 'bank-account',
+  property: 'property',
+  'select-title': 'select-title',
+  refresh: 'refresh',
+} as const;
+
+export interface CredasCheckState {
+  transactionReference: string;
+  productSlug: string;
+  transactionStatus: TransactionStatus;
+  paid: boolean;
+  requiredChecks: CredasCheckKind[];
+  actions: CredasCheckStateActionsItem[];
+  outcome?: CredasOutcome;
+  checks: CredasCheck[];
+  updatedAt: string;
+}
+
 export interface StripeCheckoutInput {
   /**
      * @minLength 8
@@ -246,5 +599,13 @@ export type SearchCompaniesHouseCompaniesParams = {
  * @maxLength 120
  */
 q: string;
+};
+
+export type ReceiveCredasWebhookParams = {
+/**
+ * @minLength 43
+ * @maxLength 43
+ */
+t: string;
 };
 

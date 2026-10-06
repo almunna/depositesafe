@@ -22,6 +22,9 @@ bootstrapped because that account had no catalogue. Names, amounts and providers
 
 - Development uses the allowlisted sandbox account; production/deployment identity uses the allowlisted
   DepositSafe LIVE account. Account ID and secret-key mode must both match. No first-connection or test-key fallback.
+- Local development outside Replit is the one exception: with no connector identity and a non-production
+  runtime, `STRIPE_SECRET_KEY` (test-mode `sk_test_`/`rk_test_` only) and `STRIPE_ACCOUNT_ID` from the
+  environment are used. This path never applies to live mode.
 - Connector credentials are fetched afresh and never exposed to the browser. Native connection settings
   use `secret`, `publishable` and `account_id`; some inventory views show only one of multiple native connections.
 - Checkout requires transaction owner/admin authorization or a valid guest capability. Server-side price

@@ -294,6 +294,868 @@ export const GetCompaniesHouseResultResponse = zod.object({
 
 
 /**
+ * @summary Get the Credas checks linked to a transaction
+ */
+export const GetCredasChecksParams = zod.object({
+  "reference": zod.coerce.string()
+})
+
+export const GetCredasChecksResponse = zod.object({
+  "transactionReference": zod.string(),
+  "productSlug": zod.string(),
+  "transactionStatus": zod.enum(['STARTED', 'PAYMENT_PENDING', 'PAID', 'VERIFICATION_PENDING', 'VERIFICATION_IN_PROGRESS', 'VERIFICATION_COMPLETED', 'RESULT_GENERATED', 'DELIVERED', 'PAYMENT_FAILED', 'AWAITING_PARTICIPANT', 'EXPIRED', 'VERIFICATION_FAILED', 'MANUAL_ATTENTION']),
+  "paid": zod.boolean(),
+  "requiredChecks": zod.array(zod.enum(['identity', 'right_to_rent', 'bank_account', 'property_ownership'])),
+  "actions": zod.array(zod.enum(['start', 'bank-account', 'property', 'select-title', 'refresh'])),
+  "outcome": zod.enum(['pass', 'refer', 'fail']).optional(),
+  "checks": zod.array(zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['identity', 'right_to_rent', 'bank_account', 'property_ownership']),
+  "state": zod.enum(['awaiting_participant', 'in_progress', 'awaiting_title_selection', 'pending', 'manual_review', 'completed', 'failed', 'expired']),
+  "outcome": zod.enum(['pass', 'refer', 'fail']).optional(),
+  "participantName": zod.string().optional(),
+  "participantEmail": zod.string().optional(),
+  "canResendInvite": zod.boolean(),
+  "canCompleteHere": zod.boolean(),
+  "documents": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string()
+})),
+  "message": zod.string().optional(),
+  "identity": zod.object({
+  "overall": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "liveness": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "document": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "faceMatch": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "nameMatch": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "documentType": zod.string().optional()
+}).optional(),
+  "rightToRent": zod.object({
+  "statusLabel": zod.string(),
+  "shareCodeUsed": zod.boolean(),
+  "shareCode": zod.object({
+  "valid": zod.boolean(),
+  "faceMatch": zod.boolean(),
+  "nameMatch": zod.boolean(),
+  "hasCertificate": zod.boolean()
+}).optional()
+}).optional(),
+  "bankAccount": zod.object({
+  "accountHolder": zod.string(),
+  "sortCode": zod.string(),
+  "accountNumberEnding": zod.string(),
+  "resultText": zod.string().optional(),
+  "remarks": zod.array(zod.object({
+  "type": zod.enum(['comment', 'match', 'warning', 'mismatch']),
+  "description": zod.string()
+}))
+}).optional(),
+  "property": zod.object({
+  "ownerName": zod.string(),
+  "address": zod.string(),
+  "statusLabel": zod.string(),
+  "titlesFound": zod.number().int(),
+  "matches": zod.array(zod.object({
+  "titleNumber": zod.string().optional(),
+  "address": zod.string().optional(),
+  "overallMatch": zod.enum(['no_match', 'match', 'partial_match', 'not_checked']),
+  "firstNameMatch": zod.enum(['no_match', 'match', 'partial_match', 'not_checked']),
+  "surnameMatch": zod.enum(['no_match', 'match', 'partial_match', 'not_checked']),
+  "ownership": zod.enum(['sole', 'joint', 'unknown']),
+  "tenure": zod.string().optional(),
+  "historical": zod.boolean()
+}))
+}).optional(),
+  "titleOptions": zod.array(zod.object({
+  "titleNumber": zod.string(),
+  "tenure": zod.string().optional(),
+  "address": zod.string().optional(),
+  "match": zod.enum(['no_match', 'match', 'partial_match', 'not_checked'])
+})).optional(),
+  "checkedAt": zod.coerce.date().optional()
+})),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * Requires a confirmed payment. Creates one Credas process per person and sends each their invitation.
+ * @summary Invite the people being verified to their Credas journey
+ */
+export const StartCredasVerificationParams = zod.object({
+  "reference": zod.coerce.string()
+})
+
+export const startCredasVerificationBodyParticipantsItemFirstNameMax = 100;
+
+export const startCredasVerificationBodyParticipantsItemSurnameMax = 100;
+
+export const startCredasVerificationBodyParticipantsItemEmailMin = 3;
+export const startCredasVerificationBodyParticipantsItemEmailMax = 254;
+
+export const startCredasVerificationBodyParticipantsMax = 2;
+
+
+
+export const StartCredasVerificationBody = zod.object({
+  "participants": zod.array(zod.object({
+  "firstName": zod.string().min(1).max(startCredasVerificationBodyParticipantsItemFirstNameMax),
+  "surname": zod.string().min(1).max(startCredasVerificationBodyParticipantsItemSurnameMax),
+  "email": zod.string().min(startCredasVerificationBodyParticipantsItemEmailMin).max(startCredasVerificationBodyParticipantsItemEmailMax)
+})).min(1).max(startCredasVerificationBodyParticipantsMax)
+})
+
+export const StartCredasVerificationResponse = zod.object({
+  "transactionReference": zod.string(),
+  "productSlug": zod.string(),
+  "transactionStatus": zod.enum(['STARTED', 'PAYMENT_PENDING', 'PAID', 'VERIFICATION_PENDING', 'VERIFICATION_IN_PROGRESS', 'VERIFICATION_COMPLETED', 'RESULT_GENERATED', 'DELIVERED', 'PAYMENT_FAILED', 'AWAITING_PARTICIPANT', 'EXPIRED', 'VERIFICATION_FAILED', 'MANUAL_ATTENTION']),
+  "paid": zod.boolean(),
+  "requiredChecks": zod.array(zod.enum(['identity', 'right_to_rent', 'bank_account', 'property_ownership'])),
+  "actions": zod.array(zod.enum(['start', 'bank-account', 'property', 'select-title', 'refresh'])),
+  "outcome": zod.enum(['pass', 'refer', 'fail']).optional(),
+  "checks": zod.array(zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['identity', 'right_to_rent', 'bank_account', 'property_ownership']),
+  "state": zod.enum(['awaiting_participant', 'in_progress', 'awaiting_title_selection', 'pending', 'manual_review', 'completed', 'failed', 'expired']),
+  "outcome": zod.enum(['pass', 'refer', 'fail']).optional(),
+  "participantName": zod.string().optional(),
+  "participantEmail": zod.string().optional(),
+  "canResendInvite": zod.boolean(),
+  "canCompleteHere": zod.boolean(),
+  "documents": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string()
+})),
+  "message": zod.string().optional(),
+  "identity": zod.object({
+  "overall": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "liveness": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "document": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "faceMatch": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "nameMatch": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "documentType": zod.string().optional()
+}).optional(),
+  "rightToRent": zod.object({
+  "statusLabel": zod.string(),
+  "shareCodeUsed": zod.boolean(),
+  "shareCode": zod.object({
+  "valid": zod.boolean(),
+  "faceMatch": zod.boolean(),
+  "nameMatch": zod.boolean(),
+  "hasCertificate": zod.boolean()
+}).optional()
+}).optional(),
+  "bankAccount": zod.object({
+  "accountHolder": zod.string(),
+  "sortCode": zod.string(),
+  "accountNumberEnding": zod.string(),
+  "resultText": zod.string().optional(),
+  "remarks": zod.array(zod.object({
+  "type": zod.enum(['comment', 'match', 'warning', 'mismatch']),
+  "description": zod.string()
+}))
+}).optional(),
+  "property": zod.object({
+  "ownerName": zod.string(),
+  "address": zod.string(),
+  "statusLabel": zod.string(),
+  "titlesFound": zod.number().int(),
+  "matches": zod.array(zod.object({
+  "titleNumber": zod.string().optional(),
+  "address": zod.string().optional(),
+  "overallMatch": zod.enum(['no_match', 'match', 'partial_match', 'not_checked']),
+  "firstNameMatch": zod.enum(['no_match', 'match', 'partial_match', 'not_checked']),
+  "surnameMatch": zod.enum(['no_match', 'match', 'partial_match', 'not_checked']),
+  "ownership": zod.enum(['sole', 'joint', 'unknown']),
+  "tenure": zod.string().optional(),
+  "historical": zod.boolean()
+}))
+}).optional(),
+  "titleOptions": zod.array(zod.object({
+  "titleNumber": zod.string(),
+  "tenure": zod.string().optional(),
+  "address": zod.string().optional(),
+  "match": zod.enum(['no_match', 'match', 'partial_match', 'not_checked'])
+})).optional(),
+  "checkedAt": zod.coerce.date().optional()
+})),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * Requires a confirmed payment. Account details are sent to Credas server-side and are not stored in full.
+ * @summary Run the bank account check for a transaction
+ */
+export const RunCredasBankAccountCheckParams = zod.object({
+  "reference": zod.coerce.string()
+})
+
+export const runCredasBankAccountCheckBodyFirstNameMax = 100;
+
+export const runCredasBankAccountCheckBodyMiddleNamesMax = 100;
+
+export const runCredasBankAccountCheckBodySurnameMax = 100;
+
+export const runCredasBankAccountCheckBodyDateOfBirthMax = 10;
+
+export const runCredasBankAccountCheckBodyAddressLine1Max = 100;
+
+export const runCredasBankAccountCheckBodyAddressLine2Max = 100;
+
+export const runCredasBankAccountCheckBodyCityMax = 100;
+
+export const runCredasBankAccountCheckBodyCountyMax = 100;
+
+export const runCredasBankAccountCheckBodyPostcodeMin = 5;
+export const runCredasBankAccountCheckBodyPostcodeMax = 8;
+
+export const runCredasBankAccountCheckBodySortCodeMin = 6;
+export const runCredasBankAccountCheckBodySortCodeMax = 8;
+
+export const runCredasBankAccountCheckBodyAccountNumberMin = 8;
+export const runCredasBankAccountCheckBodyAccountNumberMax = 10;
+
+
+
+export const RunCredasBankAccountCheckBody = zod.object({
+  "firstName": zod.string().min(1).max(runCredasBankAccountCheckBodyFirstNameMax),
+  "middleNames": zod.string().max(runCredasBankAccountCheckBodyMiddleNamesMax).optional(),
+  "surname": zod.string().min(1).max(runCredasBankAccountCheckBodySurnameMax),
+  "dateOfBirth": zod.string().max(runCredasBankAccountCheckBodyDateOfBirthMax).optional().describe('Optional, YYYY-MM-DD.'),
+  "addressLine1": zod.string().min(1).max(runCredasBankAccountCheckBodyAddressLine1Max),
+  "addressLine2": zod.string().max(runCredasBankAccountCheckBodyAddressLine2Max).optional(),
+  "city": zod.string().min(1).max(runCredasBankAccountCheckBodyCityMax),
+  "county": zod.string().max(runCredasBankAccountCheckBodyCountyMax).optional(),
+  "postcode": zod.string().min(runCredasBankAccountCheckBodyPostcodeMin).max(runCredasBankAccountCheckBodyPostcodeMax),
+  "sortCode": zod.string().min(runCredasBankAccountCheckBodySortCodeMin).max(runCredasBankAccountCheckBodySortCodeMax),
+  "accountNumber": zod.string().min(runCredasBankAccountCheckBodyAccountNumberMin).max(runCredasBankAccountCheckBodyAccountNumberMax)
+})
+
+export const RunCredasBankAccountCheckResponse = zod.object({
+  "transactionReference": zod.string(),
+  "productSlug": zod.string(),
+  "transactionStatus": zod.enum(['STARTED', 'PAYMENT_PENDING', 'PAID', 'VERIFICATION_PENDING', 'VERIFICATION_IN_PROGRESS', 'VERIFICATION_COMPLETED', 'RESULT_GENERATED', 'DELIVERED', 'PAYMENT_FAILED', 'AWAITING_PARTICIPANT', 'EXPIRED', 'VERIFICATION_FAILED', 'MANUAL_ATTENTION']),
+  "paid": zod.boolean(),
+  "requiredChecks": zod.array(zod.enum(['identity', 'right_to_rent', 'bank_account', 'property_ownership'])),
+  "actions": zod.array(zod.enum(['start', 'bank-account', 'property', 'select-title', 'refresh'])),
+  "outcome": zod.enum(['pass', 'refer', 'fail']).optional(),
+  "checks": zod.array(zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['identity', 'right_to_rent', 'bank_account', 'property_ownership']),
+  "state": zod.enum(['awaiting_participant', 'in_progress', 'awaiting_title_selection', 'pending', 'manual_review', 'completed', 'failed', 'expired']),
+  "outcome": zod.enum(['pass', 'refer', 'fail']).optional(),
+  "participantName": zod.string().optional(),
+  "participantEmail": zod.string().optional(),
+  "canResendInvite": zod.boolean(),
+  "canCompleteHere": zod.boolean(),
+  "documents": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string()
+})),
+  "message": zod.string().optional(),
+  "identity": zod.object({
+  "overall": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "liveness": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "document": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "faceMatch": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "nameMatch": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "documentType": zod.string().optional()
+}).optional(),
+  "rightToRent": zod.object({
+  "statusLabel": zod.string(),
+  "shareCodeUsed": zod.boolean(),
+  "shareCode": zod.object({
+  "valid": zod.boolean(),
+  "faceMatch": zod.boolean(),
+  "nameMatch": zod.boolean(),
+  "hasCertificate": zod.boolean()
+}).optional()
+}).optional(),
+  "bankAccount": zod.object({
+  "accountHolder": zod.string(),
+  "sortCode": zod.string(),
+  "accountNumberEnding": zod.string(),
+  "resultText": zod.string().optional(),
+  "remarks": zod.array(zod.object({
+  "type": zod.enum(['comment', 'match', 'warning', 'mismatch']),
+  "description": zod.string()
+}))
+}).optional(),
+  "property": zod.object({
+  "ownerName": zod.string(),
+  "address": zod.string(),
+  "statusLabel": zod.string(),
+  "titlesFound": zod.number().int(),
+  "matches": zod.array(zod.object({
+  "titleNumber": zod.string().optional(),
+  "address": zod.string().optional(),
+  "overallMatch": zod.enum(['no_match', 'match', 'partial_match', 'not_checked']),
+  "firstNameMatch": zod.enum(['no_match', 'match', 'partial_match', 'not_checked']),
+  "surnameMatch": zod.enum(['no_match', 'match', 'partial_match', 'not_checked']),
+  "ownership": zod.enum(['sole', 'joint', 'unknown']),
+  "tenure": zod.string().optional(),
+  "historical": zod.boolean()
+}))
+}).optional(),
+  "titleOptions": zod.array(zod.object({
+  "titleNumber": zod.string(),
+  "tenure": zod.string().optional(),
+  "address": zod.string().optional(),
+  "match": zod.enum(['no_match', 'match', 'partial_match', 'not_checked'])
+})).optional(),
+  "checkedAt": zod.coerce.date().optional()
+})),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Run the property ownership check for a transaction
+ */
+export const RunCredasPropertyCheckParams = zod.object({
+  "reference": zod.coerce.string()
+})
+
+export const runCredasPropertyCheckBodyFirstNameMax = 100;
+
+export const runCredasPropertyCheckBodyMiddleNameMax = 100;
+
+export const runCredasPropertyCheckBodySurnameMax = 100;
+
+export const runCredasPropertyCheckBodyAddressLine1Max = 100;
+
+export const runCredasPropertyCheckBodyAddressLine2Max = 100;
+
+export const runCredasPropertyCheckBodyCityMax = 100;
+
+export const runCredasPropertyCheckBodyPostcodeMin = 5;
+export const runCredasPropertyCheckBodyPostcodeMax = 8;
+
+
+
+export const RunCredasPropertyCheckBody = zod.object({
+  "firstName": zod.string().min(1).max(runCredasPropertyCheckBodyFirstNameMax),
+  "middleName": zod.string().max(runCredasPropertyCheckBodyMiddleNameMax).optional(),
+  "surname": zod.string().min(1).max(runCredasPropertyCheckBodySurnameMax),
+  "addressLine1": zod.string().min(1).max(runCredasPropertyCheckBodyAddressLine1Max),
+  "addressLine2": zod.string().max(runCredasPropertyCheckBodyAddressLine2Max).optional(),
+  "city": zod.string().min(1).max(runCredasPropertyCheckBodyCityMax),
+  "postcode": zod.string().min(runCredasPropertyCheckBodyPostcodeMin).max(runCredasPropertyCheckBodyPostcodeMax)
+})
+
+export const RunCredasPropertyCheckResponse = zod.object({
+  "transactionReference": zod.string(),
+  "productSlug": zod.string(),
+  "transactionStatus": zod.enum(['STARTED', 'PAYMENT_PENDING', 'PAID', 'VERIFICATION_PENDING', 'VERIFICATION_IN_PROGRESS', 'VERIFICATION_COMPLETED', 'RESULT_GENERATED', 'DELIVERED', 'PAYMENT_FAILED', 'AWAITING_PARTICIPANT', 'EXPIRED', 'VERIFICATION_FAILED', 'MANUAL_ATTENTION']),
+  "paid": zod.boolean(),
+  "requiredChecks": zod.array(zod.enum(['identity', 'right_to_rent', 'bank_account', 'property_ownership'])),
+  "actions": zod.array(zod.enum(['start', 'bank-account', 'property', 'select-title', 'refresh'])),
+  "outcome": zod.enum(['pass', 'refer', 'fail']).optional(),
+  "checks": zod.array(zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['identity', 'right_to_rent', 'bank_account', 'property_ownership']),
+  "state": zod.enum(['awaiting_participant', 'in_progress', 'awaiting_title_selection', 'pending', 'manual_review', 'completed', 'failed', 'expired']),
+  "outcome": zod.enum(['pass', 'refer', 'fail']).optional(),
+  "participantName": zod.string().optional(),
+  "participantEmail": zod.string().optional(),
+  "canResendInvite": zod.boolean(),
+  "canCompleteHere": zod.boolean(),
+  "documents": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string()
+})),
+  "message": zod.string().optional(),
+  "identity": zod.object({
+  "overall": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "liveness": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "document": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "faceMatch": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "nameMatch": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "documentType": zod.string().optional()
+}).optional(),
+  "rightToRent": zod.object({
+  "statusLabel": zod.string(),
+  "shareCodeUsed": zod.boolean(),
+  "shareCode": zod.object({
+  "valid": zod.boolean(),
+  "faceMatch": zod.boolean(),
+  "nameMatch": zod.boolean(),
+  "hasCertificate": zod.boolean()
+}).optional()
+}).optional(),
+  "bankAccount": zod.object({
+  "accountHolder": zod.string(),
+  "sortCode": zod.string(),
+  "accountNumberEnding": zod.string(),
+  "resultText": zod.string().optional(),
+  "remarks": zod.array(zod.object({
+  "type": zod.enum(['comment', 'match', 'warning', 'mismatch']),
+  "description": zod.string()
+}))
+}).optional(),
+  "property": zod.object({
+  "ownerName": zod.string(),
+  "address": zod.string(),
+  "statusLabel": zod.string(),
+  "titlesFound": zod.number().int(),
+  "matches": zod.array(zod.object({
+  "titleNumber": zod.string().optional(),
+  "address": zod.string().optional(),
+  "overallMatch": zod.enum(['no_match', 'match', 'partial_match', 'not_checked']),
+  "firstNameMatch": zod.enum(['no_match', 'match', 'partial_match', 'not_checked']),
+  "surnameMatch": zod.enum(['no_match', 'match', 'partial_match', 'not_checked']),
+  "ownership": zod.enum(['sole', 'joint', 'unknown']),
+  "tenure": zod.string().optional(),
+  "historical": zod.boolean()
+}))
+}).optional(),
+  "titleOptions": zod.array(zod.object({
+  "titleNumber": zod.string(),
+  "tenure": zod.string().optional(),
+  "address": zod.string().optional(),
+  "match": zod.enum(['no_match', 'match', 'partial_match', 'not_checked'])
+})).optional(),
+  "checkedAt": zod.coerce.date().optional()
+})),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Choose which registered title to retrieve when an address matches several
+ */
+export const SelectCredasPropertyTitleParams = zod.object({
+  "reference": zod.coerce.string()
+})
+
+export const selectCredasPropertyTitleBodyTitleNumberMax = 20;
+
+
+
+export const SelectCredasPropertyTitleBody = zod.object({
+  "titleNumber": zod.string().min(1).max(selectCredasPropertyTitleBodyTitleNumberMax)
+})
+
+export const SelectCredasPropertyTitleResponse = zod.object({
+  "transactionReference": zod.string(),
+  "productSlug": zod.string(),
+  "transactionStatus": zod.enum(['STARTED', 'PAYMENT_PENDING', 'PAID', 'VERIFICATION_PENDING', 'VERIFICATION_IN_PROGRESS', 'VERIFICATION_COMPLETED', 'RESULT_GENERATED', 'DELIVERED', 'PAYMENT_FAILED', 'AWAITING_PARTICIPANT', 'EXPIRED', 'VERIFICATION_FAILED', 'MANUAL_ATTENTION']),
+  "paid": zod.boolean(),
+  "requiredChecks": zod.array(zod.enum(['identity', 'right_to_rent', 'bank_account', 'property_ownership'])),
+  "actions": zod.array(zod.enum(['start', 'bank-account', 'property', 'select-title', 'refresh'])),
+  "outcome": zod.enum(['pass', 'refer', 'fail']).optional(),
+  "checks": zod.array(zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['identity', 'right_to_rent', 'bank_account', 'property_ownership']),
+  "state": zod.enum(['awaiting_participant', 'in_progress', 'awaiting_title_selection', 'pending', 'manual_review', 'completed', 'failed', 'expired']),
+  "outcome": zod.enum(['pass', 'refer', 'fail']).optional(),
+  "participantName": zod.string().optional(),
+  "participantEmail": zod.string().optional(),
+  "canResendInvite": zod.boolean(),
+  "canCompleteHere": zod.boolean(),
+  "documents": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string()
+})),
+  "message": zod.string().optional(),
+  "identity": zod.object({
+  "overall": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "liveness": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "document": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "faceMatch": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "nameMatch": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "documentType": zod.string().optional()
+}).optional(),
+  "rightToRent": zod.object({
+  "statusLabel": zod.string(),
+  "shareCodeUsed": zod.boolean(),
+  "shareCode": zod.object({
+  "valid": zod.boolean(),
+  "faceMatch": zod.boolean(),
+  "nameMatch": zod.boolean(),
+  "hasCertificate": zod.boolean()
+}).optional()
+}).optional(),
+  "bankAccount": zod.object({
+  "accountHolder": zod.string(),
+  "sortCode": zod.string(),
+  "accountNumberEnding": zod.string(),
+  "resultText": zod.string().optional(),
+  "remarks": zod.array(zod.object({
+  "type": zod.enum(['comment', 'match', 'warning', 'mismatch']),
+  "description": zod.string()
+}))
+}).optional(),
+  "property": zod.object({
+  "ownerName": zod.string(),
+  "address": zod.string(),
+  "statusLabel": zod.string(),
+  "titlesFound": zod.number().int(),
+  "matches": zod.array(zod.object({
+  "titleNumber": zod.string().optional(),
+  "address": zod.string().optional(),
+  "overallMatch": zod.enum(['no_match', 'match', 'partial_match', 'not_checked']),
+  "firstNameMatch": zod.enum(['no_match', 'match', 'partial_match', 'not_checked']),
+  "surnameMatch": zod.enum(['no_match', 'match', 'partial_match', 'not_checked']),
+  "ownership": zod.enum(['sole', 'joint', 'unknown']),
+  "tenure": zod.string().optional(),
+  "historical": zod.boolean()
+}))
+}).optional(),
+  "titleOptions": zod.array(zod.object({
+  "titleNumber": zod.string(),
+  "tenure": zod.string().optional(),
+  "address": zod.string().optional(),
+  "match": zod.enum(['no_match', 'match', 'partial_match', 'not_checked'])
+})).optional(),
+  "checkedAt": zod.coerce.date().optional()
+})),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Re-read open Credas checks from the provider
+ */
+export const RefreshCredasChecksParams = zod.object({
+  "reference": zod.coerce.string()
+})
+
+export const RefreshCredasChecksResponse = zod.object({
+  "transactionReference": zod.string(),
+  "productSlug": zod.string(),
+  "transactionStatus": zod.enum(['STARTED', 'PAYMENT_PENDING', 'PAID', 'VERIFICATION_PENDING', 'VERIFICATION_IN_PROGRESS', 'VERIFICATION_COMPLETED', 'RESULT_GENERATED', 'DELIVERED', 'PAYMENT_FAILED', 'AWAITING_PARTICIPANT', 'EXPIRED', 'VERIFICATION_FAILED', 'MANUAL_ATTENTION']),
+  "paid": zod.boolean(),
+  "requiredChecks": zod.array(zod.enum(['identity', 'right_to_rent', 'bank_account', 'property_ownership'])),
+  "actions": zod.array(zod.enum(['start', 'bank-account', 'property', 'select-title', 'refresh'])),
+  "outcome": zod.enum(['pass', 'refer', 'fail']).optional(),
+  "checks": zod.array(zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['identity', 'right_to_rent', 'bank_account', 'property_ownership']),
+  "state": zod.enum(['awaiting_participant', 'in_progress', 'awaiting_title_selection', 'pending', 'manual_review', 'completed', 'failed', 'expired']),
+  "outcome": zod.enum(['pass', 'refer', 'fail']).optional(),
+  "participantName": zod.string().optional(),
+  "participantEmail": zod.string().optional(),
+  "canResendInvite": zod.boolean(),
+  "canCompleteHere": zod.boolean(),
+  "documents": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string()
+})),
+  "message": zod.string().optional(),
+  "identity": zod.object({
+  "overall": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "liveness": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "document": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "faceMatch": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "nameMatch": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "documentType": zod.string().optional()
+}).optional(),
+  "rightToRent": zod.object({
+  "statusLabel": zod.string(),
+  "shareCodeUsed": zod.boolean(),
+  "shareCode": zod.object({
+  "valid": zod.boolean(),
+  "faceMatch": zod.boolean(),
+  "nameMatch": zod.boolean(),
+  "hasCertificate": zod.boolean()
+}).optional()
+}).optional(),
+  "bankAccount": zod.object({
+  "accountHolder": zod.string(),
+  "sortCode": zod.string(),
+  "accountNumberEnding": zod.string(),
+  "resultText": zod.string().optional(),
+  "remarks": zod.array(zod.object({
+  "type": zod.enum(['comment', 'match', 'warning', 'mismatch']),
+  "description": zod.string()
+}))
+}).optional(),
+  "property": zod.object({
+  "ownerName": zod.string(),
+  "address": zod.string(),
+  "statusLabel": zod.string(),
+  "titlesFound": zod.number().int(),
+  "matches": zod.array(zod.object({
+  "titleNumber": zod.string().optional(),
+  "address": zod.string().optional(),
+  "overallMatch": zod.enum(['no_match', 'match', 'partial_match', 'not_checked']),
+  "firstNameMatch": zod.enum(['no_match', 'match', 'partial_match', 'not_checked']),
+  "surnameMatch": zod.enum(['no_match', 'match', 'partial_match', 'not_checked']),
+  "ownership": zod.enum(['sole', 'joint', 'unknown']),
+  "tenure": zod.string().optional(),
+  "historical": zod.boolean()
+}))
+}).optional(),
+  "titleOptions": zod.array(zod.object({
+  "titleNumber": zod.string(),
+  "tenure": zod.string().optional(),
+  "address": zod.string().optional(),
+  "match": zod.enum(['no_match', 'match', 'partial_match', 'not_checked'])
+})).optional(),
+  "checkedAt": zod.coerce.date().optional()
+})),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Send the invited person their Credas invitation again
+ */
+export const ResendCredasInviteParams = zod.object({
+  "reference": zod.coerce.string(),
+  "checkId": zod.coerce.string().uuid()
+})
+
+export const ResendCredasInviteResponse = zod.object({
+  "transactionReference": zod.string(),
+  "productSlug": zod.string(),
+  "transactionStatus": zod.enum(['STARTED', 'PAYMENT_PENDING', 'PAID', 'VERIFICATION_PENDING', 'VERIFICATION_IN_PROGRESS', 'VERIFICATION_COMPLETED', 'RESULT_GENERATED', 'DELIVERED', 'PAYMENT_FAILED', 'AWAITING_PARTICIPANT', 'EXPIRED', 'VERIFICATION_FAILED', 'MANUAL_ATTENTION']),
+  "paid": zod.boolean(),
+  "requiredChecks": zod.array(zod.enum(['identity', 'right_to_rent', 'bank_account', 'property_ownership'])),
+  "actions": zod.array(zod.enum(['start', 'bank-account', 'property', 'select-title', 'refresh'])),
+  "outcome": zod.enum(['pass', 'refer', 'fail']).optional(),
+  "checks": zod.array(zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['identity', 'right_to_rent', 'bank_account', 'property_ownership']),
+  "state": zod.enum(['awaiting_participant', 'in_progress', 'awaiting_title_selection', 'pending', 'manual_review', 'completed', 'failed', 'expired']),
+  "outcome": zod.enum(['pass', 'refer', 'fail']).optional(),
+  "participantName": zod.string().optional(),
+  "participantEmail": zod.string().optional(),
+  "canResendInvite": zod.boolean(),
+  "canCompleteHere": zod.boolean(),
+  "documents": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string()
+})),
+  "message": zod.string().optional(),
+  "identity": zod.object({
+  "overall": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "liveness": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "document": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "faceMatch": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "nameMatch": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "documentType": zod.string().optional()
+}).optional(),
+  "rightToRent": zod.object({
+  "statusLabel": zod.string(),
+  "shareCodeUsed": zod.boolean(),
+  "shareCode": zod.object({
+  "valid": zod.boolean(),
+  "faceMatch": zod.boolean(),
+  "nameMatch": zod.boolean(),
+  "hasCertificate": zod.boolean()
+}).optional()
+}).optional(),
+  "bankAccount": zod.object({
+  "accountHolder": zod.string(),
+  "sortCode": zod.string(),
+  "accountNumberEnding": zod.string(),
+  "resultText": zod.string().optional(),
+  "remarks": zod.array(zod.object({
+  "type": zod.enum(['comment', 'match', 'warning', 'mismatch']),
+  "description": zod.string()
+}))
+}).optional(),
+  "property": zod.object({
+  "ownerName": zod.string(),
+  "address": zod.string(),
+  "statusLabel": zod.string(),
+  "titlesFound": zod.number().int(),
+  "matches": zod.array(zod.object({
+  "titleNumber": zod.string().optional(),
+  "address": zod.string().optional(),
+  "overallMatch": zod.enum(['no_match', 'match', 'partial_match', 'not_checked']),
+  "firstNameMatch": zod.enum(['no_match', 'match', 'partial_match', 'not_checked']),
+  "surnameMatch": zod.enum(['no_match', 'match', 'partial_match', 'not_checked']),
+  "ownership": zod.enum(['sole', 'joint', 'unknown']),
+  "tenure": zod.string().optional(),
+  "historical": zod.boolean()
+}))
+}).optional(),
+  "titleOptions": zod.array(zod.object({
+  "titleNumber": zod.string(),
+  "tenure": zod.string().optional(),
+  "address": zod.string().optional(),
+  "match": zod.enum(['no_match', 'match', 'partial_match', 'not_checked'])
+})).optional(),
+  "checkedAt": zod.coerce.date().optional()
+})),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * Issued only when the person being verified is the transaction owner. The link signs that person in to their journey.
+ * @summary Create a short-lived link for completing your own verification
+ */
+export const CreateCredasJourneyLinkParams = zod.object({
+  "reference": zod.coerce.string(),
+  "checkId": zod.coerce.string().uuid()
+})
+
+export const CreateCredasJourneyLinkResponse = zod.object({
+  "url": zod.string().url(),
+  "expiresAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Download a PDF document for a completed Credas check
+ */
+export const downloadCredasDocumentPathDocumentIdRegExp = new RegExp('^(report|settled-status|file-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$');
+
+
+export const DownloadCredasDocumentParams = zod.object({
+  "reference": zod.coerce.string(),
+  "checkId": zod.coerce.string().uuid(),
+  "documentId": zod.coerce.string().regex(downloadCredasDocumentPathDocumentIdRegExp)
+})
+
+export const DownloadCredasDocumentResponse = zod.unknown()
+
+
+/**
+ * @summary List the Credas journeys and actors available to the configured API key
+ */
+export const ListCredasJourneysResponseItem = zod.object({
+  "id": zod.string(),
+  "title": zod.string().nullish(),
+  "isActive": zod.boolean(),
+  "isRightToRent": zod.boolean(),
+  "webhookEnabled": zod.boolean(),
+  "actors": zod.array(zod.object({
+  "id": zod.number().int(),
+  "title": zod.string().nullish(),
+  "isClient": zod.boolean()
+}))
+})
+export const ListCredasJourneysResponse = zod.array(ListCredasJourneysResponseItem)
+
+
+/**
+ * Invite management, Right to Rent remediation and data erasure. Requires an explicit administrator role; every action is audited.
+ * @summary Run a staff action against a Credas check
+ */
+export const RunCredasAdminActionParams = zod.object({
+  "checkId": zod.coerce.string().uuid()
+})
+
+export const runCredasAdminActionBodyCommentsMax = 500;
+
+
+
+export const RunCredasAdminActionBody = zod.object({
+  "action": zod.enum(['refresh', 'new-invite', 'expire-invite', 'reinvite-idv', 'set-right-to-rent-outcome', 'delete-process', 'hard-delete-entity']),
+  "outcome": zod.enum(['pass', 'fail', 'refer']).optional(),
+  "comments": zod.string().max(runCredasAdminActionBodyCommentsMax).optional()
+})
+
+export const RunCredasAdminActionResponse = zod.object({
+  "transactionReference": zod.string(),
+  "productSlug": zod.string(),
+  "transactionStatus": zod.enum(['STARTED', 'PAYMENT_PENDING', 'PAID', 'VERIFICATION_PENDING', 'VERIFICATION_IN_PROGRESS', 'VERIFICATION_COMPLETED', 'RESULT_GENERATED', 'DELIVERED', 'PAYMENT_FAILED', 'AWAITING_PARTICIPANT', 'EXPIRED', 'VERIFICATION_FAILED', 'MANUAL_ATTENTION']),
+  "paid": zod.boolean(),
+  "requiredChecks": zod.array(zod.enum(['identity', 'right_to_rent', 'bank_account', 'property_ownership'])),
+  "actions": zod.array(zod.enum(['start', 'bank-account', 'property', 'select-title', 'refresh'])),
+  "outcome": zod.enum(['pass', 'refer', 'fail']).optional(),
+  "checks": zod.array(zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['identity', 'right_to_rent', 'bank_account', 'property_ownership']),
+  "state": zod.enum(['awaiting_participant', 'in_progress', 'awaiting_title_selection', 'pending', 'manual_review', 'completed', 'failed', 'expired']),
+  "outcome": zod.enum(['pass', 'refer', 'fail']).optional(),
+  "participantName": zod.string().optional(),
+  "participantEmail": zod.string().optional(),
+  "canResendInvite": zod.boolean(),
+  "canCompleteHere": zod.boolean(),
+  "documents": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string()
+})),
+  "message": zod.string().optional(),
+  "identity": zod.object({
+  "overall": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "liveness": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "document": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "faceMatch": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "nameMatch": zod.enum(['pass', 'refer', 'fail', 'action_required', 'not_performed']),
+  "documentType": zod.string().optional()
+}).optional(),
+  "rightToRent": zod.object({
+  "statusLabel": zod.string(),
+  "shareCodeUsed": zod.boolean(),
+  "shareCode": zod.object({
+  "valid": zod.boolean(),
+  "faceMatch": zod.boolean(),
+  "nameMatch": zod.boolean(),
+  "hasCertificate": zod.boolean()
+}).optional()
+}).optional(),
+  "bankAccount": zod.object({
+  "accountHolder": zod.string(),
+  "sortCode": zod.string(),
+  "accountNumberEnding": zod.string(),
+  "resultText": zod.string().optional(),
+  "remarks": zod.array(zod.object({
+  "type": zod.enum(['comment', 'match', 'warning', 'mismatch']),
+  "description": zod.string()
+}))
+}).optional(),
+  "property": zod.object({
+  "ownerName": zod.string(),
+  "address": zod.string(),
+  "statusLabel": zod.string(),
+  "titlesFound": zod.number().int(),
+  "matches": zod.array(zod.object({
+  "titleNumber": zod.string().optional(),
+  "address": zod.string().optional(),
+  "overallMatch": zod.enum(['no_match', 'match', 'partial_match', 'not_checked']),
+  "firstNameMatch": zod.enum(['no_match', 'match', 'partial_match', 'not_checked']),
+  "surnameMatch": zod.enum(['no_match', 'match', 'partial_match', 'not_checked']),
+  "ownership": zod.enum(['sole', 'joint', 'unknown']),
+  "tenure": zod.string().optional(),
+  "historical": zod.boolean()
+}))
+}).optional(),
+  "titleOptions": zod.array(zod.object({
+  "titleNumber": zod.string(),
+  "tenure": zod.string().optional(),
+  "address": zod.string().optional(),
+  "match": zod.enum(['no_match', 'match', 'partial_match', 'not_checked'])
+})).optional(),
+  "checkedAt": zod.coerce.date().optional()
+})),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * Credas webhooks are unsigned. The secret token identifies the check, and the status and result are then read back from Credas server-side; the body is never trusted.
+ * @summary Receive a Credas process-complete notification
+ */
+export const receiveCredasWebhookQueryTMin = 43;
+export const receiveCredasWebhookQueryTMax = 43;
+
+
+
+export const ReceiveCredasWebhookQueryParams = zod.object({
+  "t": zod.coerce.string().min(receiveCredasWebhookQueryTMin).max(receiveCredasWebhookQueryTMax)
+})
+
+export const ReceiveCredasWebhookBody = zod.object({
+  "ProcessId": zod.string().optional(),
+  "ClientId": zod.string().optional(),
+  "Status": zod.number().int().optional(),
+  "StatusDescription": zod.string().optional()
+})
+
+export const ReceiveCredasWebhookResponse = zod.object({
+  "accepted": zod.boolean()
+})
+
+
+/**
  * @summary Create a Stripe Checkout session for an existing transaction
  */
 export const CreateStripeCheckoutSessionParams = zod.object({

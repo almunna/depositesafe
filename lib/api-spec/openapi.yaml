@@ -22,6 +22,8 @@ tags:
     description: Public support contact and protected message review
   - name: webhooks
     description: Provider and authentication webhook structure
+  - name: credas
+    description: Server-side Credas identity, bank account, property and Right to Rent checks
 paths:
   /healthz:
     get:
@@ -253,6 +255,334 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /transactions/{reference}/credas:
+    get:
+      operationId: getCredasChecks
+      tags: [credas]
+      summary: Get the Credas checks linked to a transaction
+      security:
+        - clerkSession: []
+        - guestCapability: []
+      parameters:
+        - $ref: "#/components/parameters/TransactionReference"
+      responses:
+        "200":
+          description: Credas check state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CredasCheckState"
+        "403":
+          description: Valid transaction access is required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /transactions/{reference}/credas/start:
+    post:
+      operationId: startCredasVerification
+      tags: [credas]
+      summary: Invite the people being verified to their Credas journey
+      description: Requires a confirmed payment. Creates one Credas process per person and sends each their invitation.
+      security:
+        - clerkSession: []
+        - guestCapability: []
+      parameters:
+        - $ref: "#/components/parameters/TransactionReference"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CredasStartInput"
+      responses:
+        "200":
+          description: Credas check state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CredasCheckState"
+        "402":
+          description: A confirmed payment is required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /transactions/{reference}/credas/bank-account:
+    post:
+      operationId: runCredasBankAccountCheck
+      tags: [credas]
+      summary: Run the bank account check for a transaction
+      description: Requires a confirmed payment. Account details are sent to Credas server-side and are not stored in full.
+      security:
+        - clerkSession: []
+        - guestCapability: []
+      parameters:
+        - $ref: "#/components/parameters/TransactionReference"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CredasBankAccountInput"
+      responses:
+        "200":
+          description: Credas check state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CredasCheckState"
+        "402":
+          description: A confirmed payment is required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /transactions/{reference}/credas/property:
+    post:
+      operationId: runCredasPropertyCheck
+      tags: [credas]
+      summary: Run the property ownership check for a transaction
+      security:
+        - clerkSession: []
+        - guestCapability: []
+      parameters:
+        - $ref: "#/components/parameters/TransactionReference"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CredasPropertyInput"
+      responses:
+        "200":
+          description: Credas check state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CredasCheckState"
+        "402":
+          description: A confirmed payment is required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /transactions/{reference}/credas/property/title:
+    post:
+      operationId: selectCredasPropertyTitle
+      tags: [credas]
+      summary: Choose which registered title to retrieve when an address matches several
+      security:
+        - clerkSession: []
+        - guestCapability: []
+      parameters:
+        - $ref: "#/components/parameters/TransactionReference"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CredasTitleSelectionInput"
+      responses:
+        "200":
+          description: Credas check state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CredasCheckState"
+        "409":
+          description: No title selection is pending
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /transactions/{reference}/credas/refresh:
+    post:
+      operationId: refreshCredasChecks
+      tags: [credas]
+      summary: Re-read open Credas checks from the provider
+      security:
+        - clerkSession: []
+        - guestCapability: []
+      parameters:
+        - $ref: "#/components/parameters/TransactionReference"
+      responses:
+        "200":
+          description: Credas check state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CredasCheckState"
+        "402":
+          description: A confirmed payment is required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /transactions/{reference}/credas/checks/{checkId}/resend-invite:
+    post:
+      operationId: resendCredasInvite
+      tags: [credas]
+      summary: Send the invited person their Credas invitation again
+      security:
+        - clerkSession: []
+        - guestCapability: []
+      parameters:
+        - $ref: "#/components/parameters/TransactionReference"
+        - $ref: "#/components/parameters/CredasCheckId"
+      responses:
+        "200":
+          description: Credas check state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CredasCheckState"
+        "429":
+          description: An invitation was sent too recently
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /transactions/{reference}/credas/checks/{checkId}/journey-link:
+    post:
+      operationId: createCredasJourneyLink
+      tags: [credas]
+      summary: Create a short-lived link for completing your own verification
+      description: Issued only when the person being verified is the transaction owner. The link signs that person in to their journey.
+      security:
+        - clerkSession: []
+        - guestCapability: []
+      parameters:
+        - $ref: "#/components/parameters/TransactionReference"
+        - $ref: "#/components/parameters/CredasCheckId"
+      responses:
+        "200":
+          description: Journey link
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CredasJourneyLink"
+        "403":
+          description: The verification belongs to another person
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /transactions/{reference}/credas/checks/{checkId}/documents/{documentId}:
+    get:
+      operationId: downloadCredasDocument
+      tags: [credas]
+      summary: Download a PDF document for a completed Credas check
+      security:
+        - clerkSession: []
+        - guestCapability: []
+      parameters:
+        - $ref: "#/components/parameters/TransactionReference"
+        - $ref: "#/components/parameters/CredasCheckId"
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^(report|settled-status|file-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$"
+      responses:
+        "200":
+          description: PDF document
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "404":
+          description: The document is not available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/credas/journeys:
+    get:
+      operationId: listCredasJourneys
+      tags: [admin]
+      summary: List the Credas journeys and actors available to the configured API key
+      security:
+        - clerkSession: []
+      responses:
+        "200":
+          description: Credas journeys
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CredasJourney"
+        "403":
+          description: Administrator access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/credas/checks/{checkId}/actions:
+    post:
+      operationId: runCredasAdminAction
+      tags: [admin]
+      summary: Run a staff action against a Credas check
+      description: Invite management, Right to Rent remediation and data erasure. Requires an explicit administrator role; every action is audited.
+      security:
+        - clerkSession: []
+      parameters:
+        - $ref: "#/components/parameters/CredasCheckId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CredasAdminActionInput"
+      responses:
+        "200":
+          description: Credas check state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CredasCheckState"
+        "403":
+          description: Administrator access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /webhooks/credas:
+    post:
+      operationId: receiveCredasWebhook
+      tags: [webhooks]
+      summary: Receive a Credas process-complete notification
+      description: Credas webhooks are unsigned. The secret token identifies the check, and the status and result are then read back from Credas server-side; the body is never trusted.
+      parameters:
+        - name: t
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 43
+            maxLength: 43
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CredasWebhookEvent"
+      responses:
+        "200":
+          description: Notification accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebhookAccepted"
+        "401":
+          description: Unknown or mismatched notification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /transactions/{reference}/payments/checkout:
     post:
       operationId: createStripeCheckoutSession
@@ -469,6 +799,13 @@ components:
       required: true
       schema:
         type: string
+    CredasCheckId:
+      name: checkId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
   schemas:
     HealthStatus:
       type: object
@@ -655,6 +992,376 @@ components:
           type: string
           format: date-time
       required: [verificationId, transactionReference, companyNumber, companyName, companyStatus, outcome, transactionStatus, checkedAt]
+    CredasParticipantInput:
+      type: object
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 100
+        surname:
+          type: string
+          minLength: 1
+          maxLength: 100
+        email:
+          type: string
+          minLength: 3
+          maxLength: 254
+      required: [firstName, surname, email]
+    CredasStartInput:
+      type: object
+      properties:
+        participants:
+          type: array
+          minItems: 1
+          maxItems: 2
+          items:
+            $ref: "#/components/schemas/CredasParticipantInput"
+      required: [participants]
+    CredasBankAccountInput:
+      type: object
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 100
+        middleNames:
+          type: string
+          maxLength: 100
+        surname:
+          type: string
+          minLength: 1
+          maxLength: 100
+        dateOfBirth:
+          type: string
+          maxLength: 10
+          description: Optional, YYYY-MM-DD.
+        addressLine1:
+          type: string
+          minLength: 1
+          maxLength: 100
+        addressLine2:
+          type: string
+          maxLength: 100
+        city:
+          type: string
+          minLength: 1
+          maxLength: 100
+        county:
+          type: string
+          maxLength: 100
+        postcode:
+          type: string
+          minLength: 5
+          maxLength: 8
+        sortCode:
+          type: string
+          minLength: 6
+          maxLength: 8
+        accountNumber:
+          type: string
+          minLength: 8
+          maxLength: 10
+      required: [firstName, surname, addressLine1, city, postcode, sortCode, accountNumber]
+    CredasPropertyInput:
+      type: object
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 100
+        middleName:
+          type: string
+          maxLength: 100
+        surname:
+          type: string
+          minLength: 1
+          maxLength: 100
+        addressLine1:
+          type: string
+          minLength: 1
+          maxLength: 100
+        addressLine2:
+          type: string
+          maxLength: 100
+        city:
+          type: string
+          minLength: 1
+          maxLength: 100
+        postcode:
+          type: string
+          minLength: 5
+          maxLength: 8
+      required: [firstName, surname, addressLine1, city, postcode]
+    CredasTitleSelectionInput:
+      type: object
+      properties:
+        titleNumber:
+          type: string
+          minLength: 1
+          maxLength: 20
+      required: [titleNumber]
+    CredasAdminActionInput:
+      type: object
+      properties:
+        action:
+          type: string
+          enum: [refresh, new-invite, expire-invite, reinvite-idv, set-right-to-rent-outcome, delete-process, hard-delete-entity]
+        outcome:
+          type: string
+          enum: [pass, fail, refer]
+        comments:
+          type: string
+          maxLength: 500
+      required: [action]
+    CredasWebhookEvent:
+      type: object
+      properties:
+        ProcessId:
+          type: string
+        ClientId:
+          type: string
+        Status:
+          type: integer
+        StatusDescription:
+          type: string
+      additionalProperties: true
+    CredasJourney:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+        isRightToRent:
+          type: boolean
+        webhookEnabled:
+          type: boolean
+        actors:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              title:
+                type: string
+                nullable: true
+              isClient:
+                type: boolean
+            required: [id, isClient]
+      required: [id, isActive, isRightToRent, webhookEnabled, actors]
+    CredasJourneyLink:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+        expiresAt:
+          type: string
+          format: date-time
+      required: [url, expiresAt]
+    CredasOutcome:
+      type: string
+      enum: [pass, refer, fail]
+    CredasComponentResult:
+      type: string
+      enum: [pass, refer, fail, action_required, not_performed]
+    CredasMatch:
+      type: string
+      enum: [no_match, match, partial_match, not_checked]
+    CredasCheckKind:
+      type: string
+      enum: [identity, right_to_rent, bank_account, property_ownership]
+    CredasDocument:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+      required: [id, label]
+    CredasIdentityResult:
+      type: object
+      properties:
+        overall:
+          $ref: "#/components/schemas/CredasComponentResult"
+        liveness:
+          $ref: "#/components/schemas/CredasComponentResult"
+        document:
+          $ref: "#/components/schemas/CredasComponentResult"
+        faceMatch:
+          $ref: "#/components/schemas/CredasComponentResult"
+        nameMatch:
+          $ref: "#/components/schemas/CredasComponentResult"
+        documentType:
+          type: string
+      required: [overall, liveness, document, faceMatch, nameMatch]
+    CredasRightToRentResult:
+      type: object
+      properties:
+        statusLabel:
+          type: string
+        shareCodeUsed:
+          type: boolean
+        shareCode:
+          type: object
+          properties:
+            valid:
+              type: boolean
+            faceMatch:
+              type: boolean
+            nameMatch:
+              type: boolean
+            hasCertificate:
+              type: boolean
+          required: [valid, faceMatch, nameMatch, hasCertificate]
+      required: [statusLabel, shareCodeUsed]
+    CredasBankAccountResult:
+      type: object
+      properties:
+        accountHolder:
+          type: string
+        sortCode:
+          type: string
+        accountNumberEnding:
+          type: string
+        resultText:
+          type: string
+        remarks:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum: [comment, match, warning, mismatch]
+              description:
+                type: string
+            required: [type, description]
+      required: [accountHolder, sortCode, accountNumberEnding, remarks]
+    CredasTitleOption:
+      type: object
+      properties:
+        titleNumber:
+          type: string
+        tenure:
+          type: string
+        address:
+          type: string
+        match:
+          $ref: "#/components/schemas/CredasMatch"
+      required: [titleNumber, match]
+    CredasPropertyResult:
+      type: object
+      properties:
+        ownerName:
+          type: string
+        address:
+          type: string
+        statusLabel:
+          type: string
+        titlesFound:
+          type: integer
+        matches:
+          type: array
+          items:
+            type: object
+            properties:
+              titleNumber:
+                type: string
+              address:
+                type: string
+              overallMatch:
+                $ref: "#/components/schemas/CredasMatch"
+              firstNameMatch:
+                $ref: "#/components/schemas/CredasMatch"
+              surnameMatch:
+                $ref: "#/components/schemas/CredasMatch"
+              ownership:
+                type: string
+                enum: [sole, joint, unknown]
+              tenure:
+                type: string
+              historical:
+                type: boolean
+            required: [overallMatch, firstNameMatch, surnameMatch, ownership, historical]
+      required: [ownerName, address, statusLabel, titlesFound, matches]
+    CredasCheck:
+      type: object
+      properties:
+        id:
+          type: string
+        kind:
+          $ref: "#/components/schemas/CredasCheckKind"
+        state:
+          type: string
+          enum: [awaiting_participant, in_progress, awaiting_title_selection, pending, manual_review, completed, failed, expired]
+        outcome:
+          $ref: "#/components/schemas/CredasOutcome"
+        participantName:
+          type: string
+        participantEmail:
+          type: string
+        canResendInvite:
+          type: boolean
+        canCompleteHere:
+          type: boolean
+        documents:
+          type: array
+          items:
+            $ref: "#/components/schemas/CredasDocument"
+        message:
+          type: string
+        identity:
+          $ref: "#/components/schemas/CredasIdentityResult"
+        rightToRent:
+          $ref: "#/components/schemas/CredasRightToRentResult"
+        bankAccount:
+          $ref: "#/components/schemas/CredasBankAccountResult"
+        property:
+          $ref: "#/components/schemas/CredasPropertyResult"
+        titleOptions:
+          type: array
+          items:
+            $ref: "#/components/schemas/CredasTitleOption"
+        checkedAt:
+          type: string
+          format: date-time
+      required: [id, kind, state, canResendInvite, canCompleteHere, documents]
+    CredasCheckState:
+      type: object
+      properties:
+        transactionReference:
+          type: string
+        productSlug:
+          type: string
+        transactionStatus:
+          $ref: "#/components/schemas/TransactionStatus"
+        paid:
+          type: boolean
+        requiredChecks:
+          type: array
+          items:
+            $ref: "#/components/schemas/CredasCheckKind"
+        actions:
+          type: array
+          items:
+            type: string
+            enum: [start, bank-account, property, select-title, refresh]
+        outcome:
+          $ref: "#/components/schemas/CredasOutcome"
+        checks:
+          type: array
+          items:
+            $ref: "#/components/schemas/CredasCheck"
+        updatedAt:
+          type: string
+          format: date-time
+      required: [transactionReference, productSlug, transactionStatus, paid, requiredChecks, actions, checks, updatedAt]
     StripeCheckoutInput:
       type: object
       properties:

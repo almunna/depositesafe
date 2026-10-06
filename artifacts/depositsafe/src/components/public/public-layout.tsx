@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'wouter';
 import { Menu, Search, X } from 'lucide-react';
+import { useAccount } from '@/hooks/use-account';
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
@@ -68,6 +69,7 @@ function HeaderSearch() {
 
 function PublicHeader({ logoSrc, homepage = false }: { logoSrc?: string; homepage?: boolean }) {
   const [open, setOpen] = useState(false);
+  const { isSignedIn, signOut } = useAccount();
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
@@ -85,7 +87,14 @@ function PublicHeader({ logoSrc, homepage = false }: { logoSrc?: string; homepag
         </nav>
         <div className={`hidden items-center gap-2 xl:flex`}>
           <HeaderSearch />
-          <Link href="/sign-in" className="whitespace-nowrap rounded-full border border-primary px-5 py-2 text-sm font-semibold text-primary hover:bg-secondary" data-testid="link-public-sign-in">Sign in</Link>
+          {isSignedIn ? (
+            <>
+              <Link href="/dashboard" className="whitespace-nowrap rounded-full border border-primary px-5 py-2 text-sm font-semibold text-primary hover:bg-secondary" data-testid="link-public-dashboard">Your checks</Link>
+              <button type="button" onClick={() => void signOut()} className="whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold text-foreground/75 hover:bg-secondary hover:text-foreground" data-testid="button-public-sign-out">Sign out</button>
+            </>
+          ) : (
+            <Link href="/sign-in" className="whitespace-nowrap rounded-full border border-primary px-5 py-2 text-sm font-semibold text-primary hover:bg-secondary" data-testid="link-public-sign-in">Sign in</Link>
+          )}
           <a href={`${base}/#get-started`} className="whitespace-nowrap rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-sm hover:brightness-110" data-testid="link-public-get-started">Get Started</a>
         </div>
         <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls="public-mobile-menu" aria-label={open ? 'Close menu' : 'Open menu'} className={`grid h-11 w-11 place-items-center rounded-lg border border-border bg-white xl:hidden`} data-testid="button-public-menu">
@@ -98,8 +107,11 @@ function PublicHeader({ logoSrc, homepage = false }: { logoSrc?: string; homepag
             {items.map((n) => <a key={n.label} href={n.href} onClick={() => setOpen(false)} className="border-b border-border/60 py-3.5 text-base font-semibold">{n.label}</a>)}
           </div>
           <div className="mt-4 grid grid-cols-2 gap-3">
-            <Link href="/sign-in" onClick={() => setOpen(false)} className="rounded-lg border border-border py-3 text-center text-sm font-bold">Sign in</Link>
+            {isSignedIn
+              ? <Link href="/dashboard" onClick={() => setOpen(false)} className="rounded-lg border border-border py-3 text-center text-sm font-bold" data-testid="link-mobile-dashboard">Your checks</Link>
+              : <Link href="/sign-in" onClick={() => setOpen(false)} className="rounded-lg border border-border py-3 text-center text-sm font-bold">Sign in</Link>}
             <a href={`${base}/#get-started`} onClick={() => setOpen(false)} className="rounded-lg bg-primary py-3 text-center text-sm font-bold text-primary-foreground">Get Started</a>
+            {isSignedIn ? <button type="button" onClick={() => { setOpen(false); void signOut(); }} className="col-span-2 rounded-lg border border-border py-3 text-center text-sm font-bold" data-testid="button-mobile-sign-out">Sign out</button> : null}
           </div>
         </nav>
       ) : null}
@@ -108,6 +120,7 @@ function PublicHeader({ logoSrc, homepage = false }: { logoSrc?: string; homepag
 }
 
 export function PublicFooter({ companyCheck = false, homepage = false, logoSrc }: { companyCheck?: boolean; homepage?: boolean; logoSrc?: string }) {
+  const { isSignedIn } = useAccount();
   return (
     <footer className="bg-[hsl(var(--ds-navy))] text-white">
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-[1.4fr_1fr_1fr] lg:px-8">
@@ -121,7 +134,7 @@ export function PublicFooter({ companyCheck = false, homepage = false, logoSrc }
             <li><a href={`${base}/#checks`} className="text-white/80 hover:text-white">Our Checks</a></li>
             <li><a href={`${base}/#how-it-works`} className="text-white/80 hover:text-white">How It Works</a></li>
             <li><a href={`${base}/#pricing`} className="text-white/80 hover:text-white">Pricing</a></li>
-            <li><Link href="/sign-in" className="text-white/80 hover:text-white">Sign in</Link></li>
+            <li>{isSignedIn ? <Link href="/dashboard" className="text-white/80 hover:text-white">Your checks</Link> : <Link href="/sign-in" className="text-white/80 hover:text-white">Sign in</Link>}</li>
           </ul>
         </div>
         <div>

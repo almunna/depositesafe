@@ -8,6 +8,7 @@ import adminRouter from "./admin";
 import webhooksRouter from "./webhooks";
 import contactRouter from "./contact";
 import companiesHouseRouter from "./companies-house";
+import credasRouter from "./credas";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use(adminRouter);
 router.use(webhooksRouter);
 router.use(contactRouter);
 router.use(companiesHouseRouter);
+router.use(credasRouter);
 
 export default router;

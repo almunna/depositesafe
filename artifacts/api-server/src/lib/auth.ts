@@ -95,6 +95,15 @@ export async function ensureLocalUser(clerkUserId: string, email?: string) {
   return created;
 }
 
+export async function getAccountEmail(clerkUserId: string): Promise<string | undefined> {
+  try {
+    const user = await clerkClient.users.getUser(clerkUserId);
+    return user.primaryEmailAddress?.emailAddress;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function getPrimaryEmail(userId: string): Promise<string> {
   const email = await db.query.userEmailsTable.findFirst({
     where: eq(userEmailsTable.userId, userId),
@@ -128,9 +137,14 @@ function isProductionRuntime(): boolean {
 }
 
 export async function isAdminRequest(req: Request, role: string): Promise<boolean> {
+  if (!isProductionRuntime()) return true;
+  return isStrictAdminRequest(req, role);
+}
+
+/** Administrator check with no development bypass, for provider-side and destructive actions. */
+export async function isStrictAdminRequest(req: Request, role: string): Promise<boolean> {
   const auth = getAuth(req);
   if (role === "admin" || hasAdminRoleClaim(auth.sessionClaims)) return true;
-  if (!isProductionRuntime()) return true;
 
   const configuredEmails = (process.env.DEPOSITSAFE_ADMIN_EMAILS ?? "")
     .split(",")
@@ -149,6 +163,27 @@ export async function isAdminRequest(req: Request, role: string): Promise<boolea
     return false;
   }
 }
+
+export const requireStrictAdmin: RequestHandler = async (
+  req,
+  res,
+  next: NextFunction,
+): Promise<void> => {
+  const userId = optionalUserId(req);
+  if (!userId) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
+
+  const user = await ensureLocalUser(userId);
+  if (!(await isStrictAdminRequest(req, user.role))) {
+    res.status(403).json({ error: "Administrator access required" });
+    return;
+  }
+
+  (req as AuthenticatedRequest).userId = userId;
+  next();
+};
 
 export const requireAdmin: RequestHandler = async (
   req,

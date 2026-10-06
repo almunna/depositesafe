@@ -26,11 +26,34 @@ export function stripeMode(): StripeMode {
     || Boolean(process.env.WEB_REPL_RENEWAL && !process.env.REPL_IDENTITY) ? "live" : "test";
 }
 
-async function credentials(mode: StripeMode) {
+function connectorIdentity() {
   const host = process.env.REPLIT_CONNECTORS_HOSTNAME;
   const token = process.env.REPL_IDENTITY ? `repl ${process.env.REPL_IDENTITY}`
     : process.env.WEB_REPL_RENEWAL ? `depl ${process.env.WEB_REPL_RENEWAL}` : undefined;
-  if (!host || !token) throw new Error("Replit Stripe connector identity is unavailable.");
+  return host && token ? { host, token } : undefined;
+}
+
+// Local development outside Replit only: a test-mode key from the environment.
+// Never applies to live mode or when the Replit connector identity is present.
+function localCredentials(mode: StripeMode) {
+  const key = process.env.STRIPE_SECRET_KEY;
+  const accountId = process.env.STRIPE_ACCOUNT_ID;
+  if (mode !== "test" || stripeMode() !== "test" || connectorIdentity()) return undefined;
+  if (!key || !accountId || !/^(?:sk|rk)_test_/.test(key)) return undefined;
+  return { key, accountId };
+}
+
+/** The Stripe account the runtime's credentials belong to. */
+export function stripeAccountId(mode: StripeMode = stripeMode()): string {
+  return localCredentials(mode)?.accountId ?? STRIPE_ACCOUNTS[mode];
+}
+
+async function credentials(mode: StripeMode) {
+  const local = localCredentials(mode);
+  if (local) return local;
+  const identity = connectorIdentity();
+  if (!identity) throw new Error("Replit Stripe connector identity is unavailable.");
+  const { host, token } = identity;
   const response = await fetch(`https://${host}/api/v2/connection?include_secrets=true&connector_names=stripe`, {
     headers: { Accept: "application/json", X_REPLIT_TOKEN: token },
     signal: AbortSignal.timeout(10_000),

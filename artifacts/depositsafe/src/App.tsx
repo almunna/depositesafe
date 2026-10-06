@@ -1,9 +1,10 @@
-import { type ReactNode } from 'react';
+import { useLayoutEffect, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ClerkProvider } from '@clerk/react';
+import { ClerkProvider, useAuth } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { shadcn } from '@clerk/themes';
 import { Route, Router as WouterRouter, Switch, useLocation } from 'wouter';
+import { setAuthTokenGetter } from '@workspace/api-client-react';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -80,6 +81,21 @@ function RoutedErrorBoundary({ children }: { children: ReactNode }) {
   return <ErrorBoundary resetKey={location}>{children}</ErrorBoundary>;
 }
 
+// The Clerk session cookie expires within a minute of the tab being away (for example at
+// Stripe checkout), so API calls carry a fresh session token rather than relying on it.
+function ApiAuthToken() {
+  const { getToken } = useAuth();
+  useLayoutEffect(() => {
+    setAuthTokenGetter(() => Promise.race([
+      getToken().catch(() => null),
+      // Never hold public requests hostage if Clerk cannot load.
+      new Promise<null>((resolve) => window.setTimeout(() => resolve(null), 5000)),
+    ]));
+    return () => setAuthTokenGetter(null);
+  }, [getToken]);
+  return null;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -96,6 +112,7 @@ function App() {
               signUp: { start: { title: 'Create your account', subtitle: 'Keep your DepositSafe check records together' } },
             }}
           >
+            <ApiAuthToken />
             <Router />
           </ClerkProvider>
         </WouterRouter>

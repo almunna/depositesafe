@@ -53,3 +53,4 @@ No additional preferences recorded.
 ## Pointers
 
 - See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- See `docs/credas-checks.md` for the Credas checks: endpoints, configuration and security model

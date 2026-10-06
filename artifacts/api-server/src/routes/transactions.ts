@@ -11,6 +11,7 @@ import {
 import {
   authorizeTransactionAccess,
   ensureLocalUser,
+  getAccountEmail,
   optionalUserId,
   requireAuth,
   type AuthenticatedRequest,
@@ -50,18 +51,25 @@ router.post("/transactions", async (req, res): Promise<void> => {
     return;
   }
 
+  const clerkUserId = optionalUserId(req);
+  // A signed-in check always uses the account's own email, never one supplied by the browser.
+  const email = clerkUserId ? await getAccountEmail(clerkUserId) : parsed.data.email;
+  if (!email) {
+    res.status(503).json({ error: "We could not confirm your account email. Please try again." });
+    return;
+  }
+
   const inputParticipants = parsed.data.participants?.length
     ? parsed.data.participants
     : parsed.data.participant
       ? [parsed.data.participant]
-      : [{ name: parsed.data.email.split("@")[0] || "Participant", email: parsed.data.email }];
+      : [{ name: email.split("@")[0] || "Participant", email }];
   if (product.participantMode === "multiple" && inputParticipants.length < 2) {
     res.status(400).json({ error: "This product requires multiple participants." });
     return;
   }
 
-  const clerkUserId = optionalUserId(req);
-  const localUser = clerkUserId ? await ensureLocalUser(clerkUserId, parsed.data.email) : undefined;
+  const localUser = clerkUserId ? await ensureLocalUser(clerkUserId, email) : undefined;
   const guestCapability = localUser ? undefined : randomBytes(32).toString("base64url");
   const transaction = await db.transaction(async (tx) => {
     const [created] = await tx
@@ -73,7 +81,7 @@ router.post("/transactions", async (req, res): Promise<void> => {
           : null,
         userId: localUser?.id,
         productId: product.id,
-        guestEmail: parsed.data.email,
+        guestEmail: email,
         status: "STARTED",
       })
       .returning();
