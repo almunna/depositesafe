@@ -47,3 +47,61 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Local environment files hold secrets; only the example is committed.
+.env
+.env.*
+!.env.example
+*.env
+.envrc
+
+# Private keys, certificates and keystores
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.crt
+*.cer
+*.der
+id_rsa*
+id_dsa*
+id_ecdsa*
+id_ed25519*
+*.ppk
+
+# Credential and token files written by CLIs and SDKs
+.config/
+.netrc
+.pgpass
+.aws/
+.ssh/
+.gnupg/
+.stripe/
+.clerk/
+.vercel/
+.npmrc.local
+.yarnrc.local
+*credentials*.json
+*credential*.json
+*service-account*.json
+*serviceaccount*.json
+client_secret*.json
+*secret*.json
+*secrets*.y*ml
+token*.json
+*.tfvars
+*.tfstate
+*.tfstate.*
+.htpasswd
+
+# Local databases and dumps can carry customer data and secrets
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+*.sql.gz
+
+# Local agent transcripts
+.conversation/
