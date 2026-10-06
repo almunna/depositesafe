@@ -10,6 +10,7 @@ import {
   clerkProxyMiddleware,
   getClerkProxyHost,
 } from "./middlewares/clerkProxyMiddleware";
+import { webApp } from "./middlewares/webApp";
 import { WebhookHandlers } from "./lib/webhookHandlers";
 
 const app: Express = express();
@@ -34,6 +35,10 @@ app.use(
   }),
 );
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
+// Set by the Docker image only. Mounted ahead of Clerk and the body parsers so
+// page and asset requests never run through them.
+const webRoot = process.env.DEPOSITSAFE_WEB_ROOT;
+if (webRoot) app.use(webApp(webRoot));
 app.use(cors());
 app.post("/api/webhooks/stripe", express.raw({ type: "application/json", limit: "1mb" }), async (req, res) => {
   const signature = req.header("stripe-signature");

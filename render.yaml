@@ -1,0 +1,73 @@
+# Render Blueprint: one Docker web service (API + web app) and its Postgres.
+# Dashboard > New > Blueprint, pick this repository, then fill in the values
+# Render asks for (every `sync: false` entry below).
+#
+# As written this is a STAGING setup: Stripe sandbox, Credas sandbox, free plans.
+# Before taking real customers:
+#   - move both plans off `free`. A free web service sleeps when idle, so the first
+#     Stripe or Credas webhook after a quiet spell waits for a cold start, and a
+#     free Postgres database expires 30 days after creation;
+#   - remove STRIPE_MODE and set the live Stripe key and account;
+#   - set CREDAS_ENVIRONMENT to production with the production key and journey IDs.
+
+databases:
+  - name: depositsafe-db
+    databaseName: depositsafe
+    plan: free
+    region: frankfurt
+    postgresMajorVersion: "16"
+    # Reachable only from services inside this Render account.
+    ipAllowList: []
+
+services:
+  - type: web
+    name: depositsafe
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    region: frankfurt
+    healthCheckPath: /api/healthz
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: depositsafe-db
+          property: connectionString
+
+      # Clerk. The VITE_ copy of the publishable key is compiled into the browser
+      # bundle when the image builds, so changing it needs a redeploy.
+      - key: CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: VITE_CLERK_PUBLISHABLE_KEY
+        sync: false
+
+      # Stripe. `test` runs this production runtime against the sandbox and needs
+      # an sk_test_ key. Delete STRIPE_MODE to go live; the server then accepts
+      # only an sk_live_ key for the DepositSafe live account.
+      - key: STRIPE_MODE
+        value: test
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_ACCOUNT_ID
+        sync: false
+
+      # Credas. Production also needs CREDAS_IDENTITY_JOURNEY_ID,
+      # CREDAS_IDENTITY_ACTOR_ID, CREDAS_RIGHT_TO_RENT_JOURNEY_ID and
+      # CREDAS_RIGHT_TO_RENT_ACTOR_ID (see .env.example).
+      - key: CREDAS_ENVIRONMENT
+        value: sandbox
+      - key: CREDAS_API_KEY
+        sync: false
+
+      - key: COMPANIES_HOUSE_API_KEY
+        sync: false
+
+      # Comma-separated. In production nobody is an administrator unless they
+      # hold the Clerk admin role or sign in with a verified address listed here.
+      - key: DEPOSITSAFE_ADMIN_EMAILS
+        sync: false
+
+      # DEPOSITSAFE_PUBLIC_ORIGIN defaults to this service's onrender.com URL
+      # (see docker/start.sh). Add it here once a custom domain is attached.

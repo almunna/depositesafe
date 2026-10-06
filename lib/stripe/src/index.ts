@@ -22,8 +22,12 @@ export const LOCKED_PRODUCTS = [
 ] as const;
 
 export function stripeMode(): StripeMode {
-  return process.env.NODE_ENV === "production" || process.env.REPLIT_DEPLOYMENT === "1"
-    || Boolean(process.env.WEB_REPL_RENEWAL && !process.env.REPL_IDENTITY) ? "live" : "test";
+  const production = process.env.NODE_ENV === "production" || process.env.REPLIT_DEPLOYMENT === "1"
+    || Boolean(process.env.WEB_REPL_RENEWAL && !process.env.REPL_IDENTITY);
+  // A production runtime hosted outside Replit (a staging deployment) may opt down
+  // to the sandbox. Nothing opts a runtime up to live.
+  if (production && !connectorIdentity() && process.env.STRIPE_MODE === "test") return "test";
+  return production ? "live" : "test";
 }
 
 function connectorIdentity() {
@@ -33,26 +37,31 @@ function connectorIdentity() {
   return host && token ? { host, token } : undefined;
 }
 
-// Local development outside Replit only: a test-mode key from the environment.
-// Never applies to live mode or when the Replit connector identity is present.
-function localCredentials(mode: StripeMode) {
+// Outside Replit there is no connector, so the key comes from the environment.
+// It is used only for the runtime's own mode, the key's mode must match, and a live
+// key is accepted only for the allowlisted DepositSafe account. Never applies when
+// the Replit connector identity is present.
+function environmentCredentials(mode: StripeMode) {
   const key = process.env.STRIPE_SECRET_KEY;
   const accountId = process.env.STRIPE_ACCOUNT_ID;
-  if (mode !== "test" || stripeMode() !== "test" || connectorIdentity()) return undefined;
-  if (!key || !accountId || !/^(?:sk|rk)_test_/.test(key)) return undefined;
+  if (mode !== stripeMode() || connectorIdentity()) return undefined;
+  if (!key || !accountId || !new RegExp(`^(?:sk|rk)_${mode}_`).test(key)) return undefined;
+  if (mode === "live" && accountId !== STRIPE_ACCOUNTS.live) return undefined;
   return { key, accountId };
 }
 
 /** The Stripe account the runtime's credentials belong to. */
 export function stripeAccountId(mode: StripeMode = stripeMode()): string {
-  return localCredentials(mode)?.accountId ?? STRIPE_ACCOUNTS[mode];
+  return environmentCredentials(mode)?.accountId ?? STRIPE_ACCOUNTS[mode];
 }
 
 async function credentials(mode: StripeMode) {
-  const local = localCredentials(mode);
-  if (local) return local;
+  const fromEnvironment = environmentCredentials(mode);
+  if (fromEnvironment) return fromEnvironment;
   const identity = connectorIdentity();
-  if (!identity) throw new Error("Replit Stripe connector identity is unavailable.");
+  if (!identity) {
+    throw new Error(`No Replit Stripe connector identity, and no ${mode} STRIPE_SECRET_KEY with a permitted STRIPE_ACCOUNT_ID.`);
+  }
   const { host, token } = identity;
   const response = await fetch(`https://${host}/api/v2/connection?include_secrets=true&connector_names=stripe`, {
     headers: { Accept: "application/json", X_REPLIT_TOKEN: token },

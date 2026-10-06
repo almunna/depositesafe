@@ -1,0 +1,33 @@
+# Unlike .gitignore, these patterns match from the context root only, so nested
+# paths need the **/ prefix.
+
+# Secrets never enter the build context.
+**/.env
+**/.env.*
+**/*.env
+.config
+.conversation
+**/*.pem
+**/*.key
+
+# Installed and built inside the image.
+**/node_modules
+**/dist
+**/*.tsbuildinfo
+
+# Not needed to build or run.
+.git
+.gitignore
+.agents
+.cache
+.local
+.vscode
+.replit
+.replitignore
+**/.replit-artifact
+docs
+screenshots
+*.md
+Dockerfile
+.dockerignore
+render.yaml
