@@ -49,6 +49,7 @@ import {
   type CredasOutcome,
   type PropertyDetails,
 } from "./credas-rules";
+import { CREDAS_BRAND_LOGO_BASE64 } from "./credas-brand-logo";
 import { logger } from "./logger";
 
 // Longer than the slowest Credas call, so a running attempt is never overtaken by a retry.
@@ -412,6 +413,7 @@ export async function startVerification(transactionId: string, input: unknown): 
         emailAddress: person.email,
         sendEmailInvite: true,
         clientAliasName: "DepositSafe",
+        clientAliasLogoBase64: CREDAS_BRAND_LOGO_BASE64,
       });
       await db.transaction(async (tx) => {
         await acquireLock(tx, transactionId);

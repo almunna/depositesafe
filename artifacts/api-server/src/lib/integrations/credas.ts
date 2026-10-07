@@ -322,6 +322,8 @@ export interface CredasProcessInput {
   phoneNumber?: string;
   sendEmailInvite: boolean;
   clientAliasName?: string;
+  /** Shown by Credas with the alias name on its emails and journey screens. */
+  clientAliasLogoBase64?: string;
 }
 
 export interface CredasProcess {
@@ -585,6 +587,7 @@ export const credasIntegration = {
           contactViaSms: false,
           inPerson: false,
           ...(input.clientAliasName ? { clientAliasName: input.clientAliasName } : {}),
+          ...(input.clientAliasLogoBase64 ? { clientAliasLogoBase64: input.clientAliasLogoBase64 } : {}),
         }],
       },
     }));

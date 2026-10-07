@@ -77,6 +77,14 @@ personal data and nothing needs it.
   administrator bypass does not apply. Every action is written to `audit_events`.
 - **Provider errors** are mapped to fixed messages; Credas response text is never forwarded.
 
+## Branding
+
+The journey screens and invitation emails are hosted by Credas, so DepositSafe cannot style them directly.
+Each process is created with `clientAliasName` and `clientAliasLogoBase64`, which put the DepositSafe name and
+logo on them. The logo is `artifacts/api-server/src/lib/credas-brand-logo.ts`, a 640px copy of the approved
+logo; regenerate it if the logo changes. Colours, the background image, the welcome text and the button colour
+are account settings that Credas applies on request (their Personalised Branding form), once per environment.
+
 ## Status mapping
 
 | Situation | Transaction status |

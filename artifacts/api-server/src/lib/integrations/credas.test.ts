@@ -133,6 +133,7 @@ test("a process is created with an email invite and never an SMS or in-person co
         journeyId: "fae35444-2710-43db-98a0-23fbfeef6f8b", actorId: 42, title: "DepositSafe check DS-1",
         webhookUrl: "https://safe.example/api/webhooks/credas?t=token", reference: "DS-1:1",
         firstName: "John", surname: "Smith", emailAddress: "john@example.com", sendEmailInvite: true, clientAliasName: "DepositSafe",
+        clientAliasLogoBase64: "aGVsbG8=",
       });
       assert.deepEqual(process, { processId: PROCESS, entityId: ENTITY, processActorId: 101110, status: 0 });
       const body = JSON.parse(String(calls[0].init.body));
@@ -141,6 +142,7 @@ test("a process is created with an email invite and never an SMS or in-person co
       assert.deepEqual(body.processEntities, [{
         firstName: "John", surname: "Smith", emailAddress: "john@example.com", reference: "DS-1:1", actorId: 42,
         contactViaEmail: true, contactViaSms: false, inPerson: false, clientAliasName: "DepositSafe",
+        clientAliasLogoBase64: "aGVsbG8=",
       }]);
     },
   );
