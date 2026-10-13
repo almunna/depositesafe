@@ -488,6 +488,10 @@ function eventPayloadSummary(event: Stripe.Event): Record<string, unknown> {
   };
 }
 
+function isUuid(value: unknown): value is string {
+  return typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+}
+
 function safePaymentEventError(): PaymentError {
   return new PaymentError("Stripe payment event could not be safely reconciled.", 409);
 }
@@ -555,12 +559,27 @@ export async function reconcileStripePaymentEvent(event: Stripe.Event): Promise<
         .where(and(eq(paymentsTable.provider, "stripe"), eq(paymentsTable.checkoutSessionReference, session.id)))
         .limit(1);
       if (!matchedPayment) {
-        if (session.metadata?.paymentId) throw safePaymentEventError();
+        // A sandbox may be shared with another environment that has its own database.
+        // Its checkouts name transactions this database has never held; acknowledge
+        // those instead of asking Stripe to retry. Live events are never skipped.
+        const transactionId = session.metadata?.transactionId;
+        const checkable = mode === "test" && isUuid(transactionId);
+        const [knownTransaction] = checkable
+          ? await tx
+              .select({ id: transactionsTable.id })
+              .from(transactionsTable)
+              .where(eq(transactionsTable.id, transactionId))
+              .limit(1)
+          : [];
+        const otherEnvironment = checkable && !knownTransaction;
+        if (session.metadata?.paymentId && !otherEnvironment) throw safePaymentEventError();
         await tx
           .update(providerEventsTable)
           .set({
             processingStatus: "processed",
-            processingError: "No persisted payment session matched this event.",
+            processingError: otherEnvironment
+              ? "Checkout belongs to another environment sharing this sandbox."
+              : "No persisted payment session matched this event.",
             externalReference: session.id,
             processedAt: now,
           })

@@ -25,6 +25,51 @@ export function missingStripeWebhookEvents(events: string[]) {
   return events.includes("*") ? [] : requiredEvents.filter(event => !events.includes(event));
 }
 
+/** True for endpoints the sync SDK treats as its own, and deletes when its database does not track them. */
+export function isStripeSyncEndpoint(endpoint: Pick<Stripe.WebhookEndpoint, "metadata" | "description">) {
+  const normalize = (value?: string | null) => value?.toLowerCase().replace(/[\s-]+/g, "") ?? "";
+  return normalize(endpoint.metadata?.managed_by) === "stripesync" || normalize(endpoint.description).includes("stripesync");
+}
+
+// Sandbox only. Another environment (for example a staging deployment with its own
+// database) owns the account's stripe-sync endpoint, so this one registers an endpoint
+// of its own beside it. It is deliberately not marked stripe-sync: neither the SDK
+// cleanup nor the other environment's ownership check will then touch it. Each
+// endpoint keeps its own signing secret, so signature verification is unchanged.
+const sharedSandboxMetadata = { managed_by: "depositsafe", depositsafe_role: "shared-sandbox" } as const;
+
+async function sharedSandboxWebhook(
+  stripe: Stripe,
+  sync: Awaited<ReturnType<typeof getStripeSync>>,
+  accountId: string,
+  url: string,
+) {
+  return sync.postgresClient.withAdvisoryLock(`webhook:${accountId}:${url}`, async () => {
+    // Webhook verification reads a single stored secret, so keep exactly one row.
+    const missing = (error: unknown) => {
+      const { statusCode, code } = error as { statusCode?: number; code?: string };
+      if (statusCode === 404 || code === "resource_missing") return undefined;
+      throw error;
+    };
+    let kept: Stripe.WebhookEndpoint | undefined;
+    for (const stored of await sync.listManagedWebhooks()) {
+      const current = await stripe.webhookEndpoints.retrieve(stored.id).catch(missing);
+      if (!kept && current && stored.url === url && current.status === "enabled") {
+        kept = current;
+        continue;
+      }
+      if (current) await stripe.webhookEndpoints.del(stored.id).catch(missing);
+      await sync.postgresClient.delete("_managed_webhooks", stored.id);
+    }
+    if (kept) return kept;
+    const webhook = await stripe.webhookEndpoints.create({
+      url, enabled_events: requiredEvents, metadata: sharedSandboxMetadata,
+    });
+    await sync.upsertManagedWebhooks([webhook], accountId);
+    return webhook;
+  });
+}
+
 async function verifyPublishedSchema() {
   // Replit Publish owns production schema changes. Runtime checks only; no production DDL.
   const sdkTables = [
@@ -62,7 +107,7 @@ export function initializeStripePayments() {
     if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is required.");
     if (stripeMode() === "test") await runMigrations({ databaseUrl: process.env.DATABASE_URL });
     else await verifyPublishedSchema();
-    const { stripe, mode } = await getStripeContext();
+    const { stripe, mode, accountId } = await getStripeContext();
     const balance = await stripe.balance.retrieve();
     if (balance.livemode !== (mode === "live")) throw new Error("Stripe environment mismatch.");
     const sync = await getStripeSync();
@@ -70,18 +115,23 @@ export function initializeStripePayments() {
     const origin = process.env.DEPOSITSAFE_PUBLIC_ORIGIN ?? (domain ? `https://${domain}` : undefined);
     if (!origin) throw new Error("Public origin unavailable for Stripe webhook registration.");
     const url = stripeWebhookUrl(origin);
-    // SDK creation deletes untracked stripe-sync endpoints. Refuse rather than
-    // disrupt webhooks managed by another project using this Stripe account.
+    // SDK creation deletes untracked stripe-sync endpoints. Never disrupt webhooks
+    // managed by another project using this Stripe account: live refuses to start,
+    // the sandbox registers its own endpoint beside them.
     const storedWebhooks = await sync.listManagedWebhooks();
     const managedIds = new Set(storedWebhooks.map(webhook => webhook.id));
+    let sharedSandbox = false;
     for await (const endpoint of stripe.webhookEndpoints.list({ limit: 100 })) {
-      const managed = endpoint.metadata.managed_by?.toLowerCase().replace(/[\s-]+/g, "") === "stripesync"
-        || endpoint.description?.toLowerCase().replace(/[\s-]+/g, "").includes("stripesync");
-      if (managed && !managedIds.has(endpoint.id)) {
-        throw new Error("An untracked stripe-sync webhook requires ownership review; no endpoints were changed.");
+      if (isStripeSyncEndpoint(endpoint) && !managedIds.has(endpoint.id)) {
+        if (mode !== "test") {
+          throw new Error("An untracked stripe-sync webhook requires ownership review; no endpoints were changed.");
+        }
+        sharedSandbox = true;
       }
     }
-    const webhook = await sync.findOrCreateManagedWebhook(url, { enabled_events: requiredEvents });
+    const webhook = sharedSandbox
+      ? await sharedSandboxWebhook(stripe, sync, accountId, url)
+      : await sync.findOrCreateManagedWebhook(url, { enabled_events: requiredEvents });
     if (missingStripeWebhookEvents(webhook.enabled_events).length > 0) {
       await sync.updateManagedWebhook(webhook.id, {
         enabled_events: [...new Set([...webhook.enabled_events, ...requiredEvents])] as Stripe.WebhookEndpointUpdateParams.EnabledEvent[],
